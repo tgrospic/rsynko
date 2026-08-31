@@ -1,0 +1,34 @@
+[package]
+name = "rsynko-ratatui"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "Ratatui interpreter of the Rsynko manager, and the keys read back from it"
+documentation = "https://docs.rs/rsynko-ratatui"
+readme = "README.md"
+
+[dependencies]
+alux-sdk.workspace = true
+ambassador.workspace = true
+crossterm.workspace = true
+futures.workspace = true
+itertools.workspace = true
+unicode-width.workspace = true
+ratatui.workspace = true
+rsynko-download.workspace = true
+rsynko-media.workspace = true
+rsynko-process.workspace = true
+rsynko-reqwest.workspace = true
+rsynko-rsync.workspace = true
+rsynko-session.workspace = true
+rsynko-yt.workspace = true
+rsynko-manager.workspace = true
+rsynko-ui.workspace = true
+rsynko-memory.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true
+
+[lints]
+workspace = true
