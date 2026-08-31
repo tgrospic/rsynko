@@ -1,0 +1,17 @@
+[package]
+name = "rsynko-ui"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "Renderer-neutral presentation specification for Rsynko"
+documentation = "https://docs.rs/rsynko-ui"
+readme = "README.md"
+
+[dependencies]
+anyhow.workspace = true
+alux-ext.workspace = true
+rsynko-manager.workspace = true
+
+[lints]
+workspace = true
