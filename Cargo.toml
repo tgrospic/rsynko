@@ -3,25 +3,26 @@ members = ["rsynko-*", "crates/*"]
 resolver = "2"
 
 [workspace.package]
-version = "0.1.0"
 edition = "2024"
 rust-version = "1.97"
 authors = ["Tomislav Grospić <grospic@gmail.com>"]
 license = "MIT"
+keywords = ["rsync", "transfer", "download", "specification", "denotational-design"]
+categories = ["command-line-utilities", "filesystem"]
 
 [workspace.dependencies]
-rsynko-download = { path = "rsynko-download" }
-rsynko-manager = { path = "rsynko-manager" }
-rsynko-media = { path = "rsynko-media" }
-rsynko-memory = { path = "crates/rsynko-memory" }
-rsynko-process = { path = "crates/rsynko-process" }
-rsynko-ratatui = { path = "crates/rsynko-ratatui" }
-rsynko-reqwest = { path = "crates/rsynko-reqwest" }
-rsynko-rsync = { path = "rsynko-rsync" }
-rsynko-session = { path = "rsynko-session" }
-rsynko-ui = { path = "rsynko-ui" }
-rsynko-x = { path = "rsynko-x" }
-rsynko-yt = { path = "rsynko-yt" }
+rsynko-download = { version = "0.1", path = "rsynko-download" }
+rsynko-manager = { version = "0.1", path = "rsynko-manager" }
+rsynko-media = { version = "0.1", path = "rsynko-media" }
+rsynko-memory = { version = "0.1", path = "crates/rsynko-memory" }
+rsynko-process = { version = "0.1", path = "crates/rsynko-process" }
+rsynko-ratatui = { version = "0.1", path = "crates/rsynko-ratatui" }
+rsynko-reqwest = { version = "0.1", path = "crates/rsynko-reqwest" }
+rsynko-rsync = { version = "0.1", path = "rsynko-rsync" }
+rsynko-session = { version = "0.1", path = "rsynko-session" }
+rsynko-ui = { version = "0.1", path = "rsynko-ui" }
+rsynko-x = { version = "0.1", path = "rsynko-x" }
+rsynko-yt = { version = "0.1", path = "rsynko-yt" }
 
 alux-ext = "0.1"
 alux-sdk = "0.1"
