@@ -1,0 +1,20 @@
+[package]
+name = "rsynko-manager"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "Renderer-neutral transfer-manager specification for Rsynko"
+documentation = "https://docs.rs/rsynko-manager"
+readme = "README.md"
+
+[dependencies]
+ambassador.workspace = true
+anyhow.workspace = true
+alux-sdk.workspace = true
+alux-ext.workspace = true
+rsynko-media.workspace = true
+rsynko-session.workspace = true
+
+[lints]
+workspace = true
