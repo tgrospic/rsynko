@@ -87,6 +87,9 @@ impl RuntimeEnvironment {
     ///
     /// Returns failure to construct the Rustls-backed client.
     pub fn build() -> Result<Self, reqwest::Error> {
+        // Rustls states the protocol and leaves the cryptography to a provider, which is a choice
+        // this interpreter makes once, here, rather than one the library makes for it.
+        let _installed = rustls::crypto::ring::default_provider().install_default();
         Ok(Self {
             client: Client::builder().build()?,
             events: RefCell::default(),
