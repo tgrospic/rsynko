@@ -1,0 +1,18 @@
+[package]
+name = "rsynko-x"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "Specification of the media one public tweet carries"
+documentation = "https://docs.rs/rsynko-x"
+readme = "README.md"
+
+[dependencies]
+ambassador.workspace = true
+anyhow.workspace = true
+alux-ext.workspace = true
+alux-sdk.workspace = true
+
+[lints]
+workspace = true
