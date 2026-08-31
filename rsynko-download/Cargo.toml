@@ -1,0 +1,20 @@
+[package]
+name = "rsynko-download"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "Meaning-first resource download specification for Rsynko"
+documentation = "https://docs.rs/rsynko-download"
+readme = "README.md"
+
+[dependencies]
+ambassador.workspace = true
+anyhow.workspace = true
+alux-ext.workspace = true
+alux-sdk.workspace = true
+derive-new.workspace = true
+thiserror.workspace = true
+
+[lints]
+workspace = true
