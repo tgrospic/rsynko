@@ -48,7 +48,8 @@ jobs:
         retention-days: 14
 
     - name: 📦 Attach the archive to the release
-      if: startsWith(github.ref, 'refs/tags/v')
+      # Every crate is tagged `<crate>-v<version>`, so the executable's own tag is the release.
+      if: startsWith(github.ref, 'refs/tags/rsynko-v')
       uses: softprops/action-gh-release@v2
       with:
         files: |
