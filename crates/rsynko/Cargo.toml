@@ -1,0 +1,31 @@
+[package]
+name = "rsynko"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "Command-line and terminal application for retrieving and transferring sources"
+documentation = "https://docs.rs/rsynko"
+readme = "README.md"
+
+[[bin]]
+name = "rsynko"
+path = "src/main.rs"
+
+[dependencies]
+clap.workspace = true
+rsynko-manager.workspace = true
+rsynko-media.workspace = true
+rsynko-memory.workspace = true
+rsynko-process.workspace = true
+rsynko-ratatui.workspace = true
+rsynko-reqwest.workspace = true
+rsynko-rsync.workspace = true
+rsynko-yt.workspace = true
+
+[dev-dependencies]
+rsynko-reqwest.workspace = true
+tempfile.workspace = true
+
+[lints]
+workspace = true
