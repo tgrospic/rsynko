@@ -1,5 +1,8 @@
 # Rsynko
 
+[![Build and Test][ga-badge]][ga-url]
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 Rsynko is a meaning-first manager for path transfers. A transfer joins two ends — a folder or a file, here or on another machine — and is rehearsed before it is performed. `rsync` performs it, and the manager never learns what `rsync` is: what it knows is the command, which it states before it runs it.
 
 A submitted line names a path unless a source recognizes it as its own, so `/home/dev/music`, `nas.local:/srv/data`, and `rsync://nas.local/data` are all transfers.
@@ -171,3 +174,6 @@ implementation machinery.
 [c-bin]: https://crates.io/crates/rsynko
 [d-bin]: https://docs.rs/rsynko/badge.svg
 [r-bin]: https://docs.rs/rsynko
+
+[ga-badge]: https://github.com/tgrospic/rsynko/actions/workflows/rust.yml/badge.svg?branch=master
+[ga-url]: https://github.com/tgrospic/rsynko/actions?query=branch:master

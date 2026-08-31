@@ -7,6 +7,8 @@ edition = "2024"
 rust-version = "1.97"
 authors = ["Tomislav Grospić <grospic@gmail.com>"]
 license = "MIT"
+homepage = "https://github.com/tgrospic/rsynko"
+repository = "https://github.com/tgrospic/rsynko"
 keywords = ["rsync", "transfer", "download", "specification", "denotational-design"]
 categories = ["command-line-utilities", "filesystem"]
 
