@@ -18,17 +18,17 @@ doc:
 test:
     cargo test --workspace --all-features
 
-# Checks that every crate has a complete package surface.
+# Checks that every crate packages cleanly, listed in publication order.
 package:
-    cargo package --list --allow-dirty -p rsynko-media > /dev/null
-    cargo package --list --allow-dirty -p rsynko-yt > /dev/null
-    cargo package --list --allow-dirty -p rsynko-manager > /dev/null
-    cargo package --list --allow-dirty -p rsynko-ui > /dev/null
     cargo package --list --allow-dirty -p rsynko-download > /dev/null
-    cargo package --list --allow-dirty -p rsynko-memory > /dev/null
-    cargo package --list --allow-dirty -p rsynko-rsync > /dev/null
     cargo package --list --allow-dirty -p rsynko-session > /dev/null
     cargo package --list --allow-dirty -p rsynko-x > /dev/null
+    cargo package --list --allow-dirty -p rsynko-media > /dev/null
+    cargo package --list --allow-dirty -p rsynko-manager > /dev/null
+    cargo package --list --allow-dirty -p rsynko-rsync > /dev/null
+    cargo package --list --allow-dirty -p rsynko-ui > /dev/null
+    cargo package --list --allow-dirty -p rsynko-yt > /dev/null
+    cargo package --list --allow-dirty -p rsynko-memory > /dev/null
     cargo package --list --allow-dirty -p rsynko-process > /dev/null
     cargo package --list --allow-dirty -p rsynko-reqwest > /dev/null
     cargo package --list --allow-dirty -p rsynko-ratatui > /dev/null
@@ -40,3 +40,15 @@ ci: fmt build clippy doc test package
 # Installs the `rsynko` executable onto the PATH, built with the release profile.
 install:
     cargo install --path crates/rsynko
+
+# Bumps and publishes one crate; level is patch, minor, or major.
+release-crate package level:
+    cargo release --package {{package}} {{level}} --execute
+
+# Bumps and publishes every crate in the workspace; level is patch, minor, or major.
+release level:
+    cargo release --workspace {{level}} --execute
+
+# Removes build artifacts.
+clean:
+    cargo clean

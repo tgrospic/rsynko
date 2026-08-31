@@ -25,17 +25,23 @@ jobs:
     - name: Cache
       uses: Swatinem/rust-cache@v2
 
+    - name: Setup just
+      uses: extractions/setup-just@v3
+
     - name: 🔨 Run formatting check
-      run: cargo fmt --all -- --check
+      run: just fmt
 
     - name: 🚀 Run build
-      run: cargo build --workspace --all-features --all-targets
+      run: just build
 
     - name: 🔨 Run clippy check
-      run: cargo clippy --workspace --all-features --all-targets -- -D warnings
+      run: just clippy
 
     - name: 🔨 Run docs generator
-      run: RUSTDOCFLAGS="-D warnings" cargo doc --workspace --all-features --no-deps
+      run: just doc
 
     - name: 🚦 Run tests
-      run: cargo test --workspace --all-features
+      run: RUST_BACKTRACE=1 just test
+
+    - name: 📦 Run package check
+      run: just package

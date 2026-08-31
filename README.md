@@ -118,6 +118,27 @@ Read [`DENOTATIONAL_DESIGN.md`](DENOTATIONAL_DESIGN.md) for semantic authority a
 [`ARCHITECTURE.md`](ARCHITECTURE.md) for dependency and interpretation boundaries before adding
 implementation machinery.
 
+## 📤 Publication
+
+Packages are licensed under MIT. Publish them in this order, allowing the crates.io index to update
+between dependent packages:
+
+1. `rsynko-download`, `rsynko-session`, and `rsynko-x` in any order
+2. `rsynko-media`
+3. `rsynko-manager`
+4. `rsynko-rsync` and `rsynko-ui` in any order
+5. `rsynko-yt`
+6. `rsynko-memory`
+7. `rsynko-process`, `rsynko-reqwest`, and `rsynko-ratatui` in any order
+8. `rsynko`
+
+Cargo cannot package a later step against crates.io until the preceding version is available there.
+
+Each crate carries its own version, so a release states only the crates that changed:
+`just release-crate <crate> <level>` for one, `just release <level>` for the whole workspace. Every
+release tags `<crate>-v<version>`, and `rsynko-v<version>` is what builds and attaches the
+executable.
+
 ## 📄 License
 
 [MIT license](LICENSE)
