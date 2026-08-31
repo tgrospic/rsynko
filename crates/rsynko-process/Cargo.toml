@@ -1,0 +1,23 @@
+[package]
+name = "rsynko-process"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "Operating-system process interpreter for Rsynko folder transfers"
+documentation = "https://docs.rs/rsynko-process"
+readme = "README.md"
+
+[dependencies]
+ambassador.workspace = true
+thiserror.workspace = true
+rsynko-manager.workspace = true
+rsynko-memory.workspace = true
+rsynko-rsync.workspace = true
+
+[dev-dependencies]
+rsynko-memory.workspace = true
+tempfile.workspace = true
+
+[lints]
+workspace = true
