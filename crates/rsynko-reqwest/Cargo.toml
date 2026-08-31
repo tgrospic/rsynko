@@ -1,0 +1,27 @@
+[package]
+name = "rsynko-reqwest"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "Reqwest and filesystem interpreters for Rsynko"
+documentation = "https://docs.rs/rsynko-reqwest"
+readme = "README.md"
+
+[dependencies]
+rsynko-memory.workspace = true
+reqwest.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+tokio-stream.workspace = true
+url.workspace = true
+rsynko-download.workspace = true
+rsynko-media.workspace = true
+rsynko-x.workspace = true
+rsynko-yt.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true
+
+[lints]
+workspace = true
