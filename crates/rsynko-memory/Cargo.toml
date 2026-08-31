@@ -1,0 +1,30 @@
+[package]
+name = "rsynko-memory"
+description = "Deterministic in-memory interpreters for Rsynko specifications"
+documentation = "https://docs.rs/rsynko-memory"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+readme = "README.md"
+
+[dependencies]
+ambassador.workspace = true
+rsynko-yt.workspace = true
+alux-sdk.workspace = true
+anyhow.workspace = true
+derive_more.workspace = true
+derive-new.workspace = true
+thiserror.workspace = true
+rsynko-download.workspace = true
+rsynko-media.workspace = true
+rsynko-rsync.workspace = true
+rsynko-session.workspace = true
+rsynko-ui.workspace = true
+rsynko-x.workspace = true
+rsynko-manager.workspace = true
+
+[dev-dependencies]
+
+[lints]
+workspace = true
