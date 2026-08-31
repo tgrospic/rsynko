@@ -1,0 +1,23 @@
+[package]
+name = "rsynko-media"
+description = "Media download meaning for Rsynko"
+documentation = "https://docs.rs/rsynko-media"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+readme = "README.md"
+
+[dependencies]
+ambassador.workspace = true
+alux-ext.workspace = true
+anyhow.workspace = true
+alux-sdk.workspace = true
+derive-new.workspace = true
+derive_more.workspace = true
+itertools.workspace = true
+thiserror.workspace = true
+rsynko-download.workspace = true
+
+[lints]
+workspace = true
