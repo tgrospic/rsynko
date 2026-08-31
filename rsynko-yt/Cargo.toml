@@ -1,0 +1,20 @@
+[package]
+name = "rsynko-yt"
+description = "Youtube download specialization for Rsynko"
+documentation = "https://docs.rs/rsynko-yt"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+readme = "README.md"
+
+[dependencies]
+ambassador.workspace = true
+anyhow.workspace = true
+alux-ext.workspace = true
+thiserror.workspace = true
+rsynko-download.workspace = true
+rsynko-media.workspace = true
+
+[lints]
+workspace = true
