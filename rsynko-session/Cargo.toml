@@ -1,0 +1,17 @@
+[package]
+name = "rsynko-session"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "Renderer-neutral specification of work running on a request's behalf"
+documentation = "https://docs.rs/rsynko-session"
+readme = "README.md"
+
+[dependencies]
+ambassador.workspace = true
+anyhow.workspace = true
+alux-ext.workspace = true
+
+[lints]
+workspace = true
