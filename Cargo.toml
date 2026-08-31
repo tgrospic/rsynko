@@ -1,0 +1,75 @@
+[workspace]
+members = ["rsynko-*", "crates/*"]
+resolver = "2"
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.97"
+authors = ["Tomislav Grospić <grospic@gmail.com>"]
+license = "MIT"
+
+[workspace.dependencies]
+rsynko-download = { path = "rsynko-download" }
+rsynko-manager = { path = "rsynko-manager" }
+rsynko-media = { path = "rsynko-media" }
+rsynko-memory = { path = "crates/rsynko-memory" }
+rsynko-process = { path = "crates/rsynko-process" }
+rsynko-ratatui = { path = "crates/rsynko-ratatui" }
+rsynko-reqwest = { path = "crates/rsynko-reqwest" }
+rsynko-rsync = { path = "rsynko-rsync" }
+rsynko-session = { path = "rsynko-session" }
+rsynko-ui = { path = "rsynko-ui" }
+rsynko-x = { path = "rsynko-x" }
+rsynko-yt = { path = "rsynko-yt" }
+
+alux-ext = "0.1"
+alux-sdk = "0.1"
+ambassador = "0.5"
+anyhow = "1"
+clap = { version = "4", features = ["derive"] }
+crossterm = "0.29"
+derive_more = { version = "2", features = ["from"] }
+derive-new = "0.7"
+futures = "0.3"
+itertools = "0.15"
+mockall = "0.15"
+paste = "1"
+proc-macro2 = "1"
+proptest = "1"
+quote = "1"
+ratatui = "0.30"
+reqwest = { version = "0.13", default-features = false, features = ["blocking", "rustls", "gzip", "brotli", "json"] }
+serde_json = "1"
+syn = { version = "3", features = ["full", "visit", "visit-mut"] }
+tempfile = "3"
+thiserror = "2"
+tokio = { version = "1", features = ["macros", "rt", "sync", "time"] }
+tokio-stream = "0.1"
+unicode-width = "0.2"
+url = "2"
+
+[workspace.lints.rust]
+missing_docs = "warn"
+unsafe_code = "forbid"
+
+[workspace.lints.rustdoc]
+broken_intra_doc_links = "deny"
+
+[workspace.lints.clippy]
+all = { level = "warn", priority = -1 }
+pedantic = { level = "warn", priority = -1 }
+module_name_repetitions = "allow"
+must_use_candidate = "allow"
+# Specification crates are safe to glob-import; see the import convention in AGENTS.md.
+wildcard_imports = "allow"
+
+[workspace.metadata.release]
+push = true
+push-remote = "origin"
+tag = true
+allow-branch = ["master"]
+sign-commit = true
+sign-tag = true
+consolidate-commits = true
+pre-release-commit-message = "chore: release"

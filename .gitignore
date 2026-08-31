@@ -1,0 +1,32 @@
+# Rust build output
+/target/
+
+# Local environment and tooling
+/.env
+/.env.*
+/.direnv/
+/.idea/
+/.vscode/
+*.swp
+*.swo
+*~
+
+# Coverage and profiling output
+*.profraw
+*.profdata
+/coverage/
+/tarpaulin-report.html
+
+# Downloads produced in the repository root
+/*.part
+/*.m4a
+/*.mkv
+/*.mp3
+/*.mp4
+/*.ogg
+/*.opus
+/*.webm
+
+# Platform metadata
+.DS_Store
+Thumbs.db
