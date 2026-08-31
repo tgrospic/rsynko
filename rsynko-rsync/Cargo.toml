@@ -1,0 +1,19 @@
+[package]
+name = "rsynko-rsync"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "Transfer specification for Rsynko: endpoints, commands, and what a transfer would do"
+documentation = "https://docs.rs/rsynko-rsync"
+readme = "README.md"
+
+[dependencies]
+anyhow.workspace = true
+alux-ext.workspace = true
+alux-sdk.workspace = true
+ambassador.workspace = true
+rsynko-manager.workspace = true
+
+[lints]
+workspace = true
