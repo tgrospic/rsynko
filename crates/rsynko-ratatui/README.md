@@ -20,6 +20,6 @@ Once leaving is stated, every run is told to stop and the reader is held here wh
 
 ## Entry point
 
-[`terminal::run`] takes the terminal over, states the requests it was given, attends to everything running, paints what the manager denotes, reads what the reader does, and gives the terminal back. It is handed requests rather than a command line, because reading a command line is not a terminal mechanism — [`rsynko`](../rsynko/README.md) does that, and chooses this interpreter or the line-oriented one.
+[`terminal::run`] takes the terminal over, states the requests it was given, attends to everything running, paints what the manager denotes, reads what the reader does, and gives the terminal back. It is handed requests rather than a command line, because reading a command line is not a terminal mechanism — [`rsynko`](https://docs.rs/rsynko) does that, and chooses this interpreter or the line-oriented one.
 
-The walkthrough of what the screens actually state — every page, every field, every action — is in the [`rsynko-manager` README](../../rsynko-manager/README.md), where the meaning lives.
+The walkthrough of what the screens actually state — every page, every field, every action — is in [`rsynko_manager`], where the meaning lives.

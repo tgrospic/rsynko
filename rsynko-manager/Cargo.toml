@@ -22,3 +22,11 @@ rsynko-session.workspace = true
 
 [lints]
 workspace = true
+
+# The README is this crate's docs.rs front page, so its links into the laws are absolute and name
+# the tag they were published under. Each release rewrites that tag, and a published README goes on
+# pointing at the code that was published with it.
+[[package.metadata.release.pre-release-replacements]]
+file = "README.md"
+search = "/blob/(master|rsynko-manager-v[0-9]+\\.[0-9]+\\.[0-9]+)/"
+replace = "/blob/{{tag_name}}/"
