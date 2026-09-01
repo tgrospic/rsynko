@@ -45,9 +45,12 @@ install:
 release-crate package level:
     cargo release --package {{package}} {{level}} --execute
 
-# Bumps and publishes every crate in the workspace; level is patch, minor, or major.
+# The executable is released alone, because a push carrying more than three tags creates no event
+# for the tag the binary release needs.
+# Bumps and publishes every crate; level is patch, minor, or major.
 release level:
-    cargo release --workspace {{level}} --execute
+    cargo release --workspace --exclude rsynko {{level}} --execute
+    cargo release --package rsynko {{level}} --execute
 
 # Removes build artifacts.
 clean:
