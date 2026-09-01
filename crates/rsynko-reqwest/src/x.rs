@@ -1,7 +1,5 @@
 use crate::RuntimeEnvironment;
-use rsynko_media::{
-    FORMAT_EXTENSION, FORMAT_HAS_AUDIO, FORMAT_HAS_VIDEO, FORMAT_SOURCE, FormatAlg, MetadataAlg,
-};
+use rsynko_media::{FORMAT_EXTENSION, FORMAT_HAS_AUDIO, FORMAT_HAS_VIDEO, FORMAT_SOURCE, FormatAlg, MetadataAlg};
 use rsynko_memory::{Extraction, Format, InfoValue, Media, MediaSyntax};
 use rsynko_x::*;
 use serde_json::Value;
@@ -59,29 +57,16 @@ impl RuntimeEnvironment {
         let id = status_id(url).ok_or_else(|| RuntimeXError::Unaddressed(url.to_owned()))?;
         let answered = self.fetch_bytes(&self.status_request(&id))?;
         let answer: Value = serde_json::from_slice(&answered)?;
-        let carried = answer
-            .get(MEDIA_DETAILS)
-            .and_then(Value::as_array)
-            .map(Vec::as_slice)
-            .unwrap_or_default();
-        let formats = carried
-            .iter()
-            .enumerate()
-            .flat_map(|(place, piece)| read_piece(place, piece))
-            .collect::<Vec<_>>();
+        let carried = answer.get(MEDIA_DETAILS).and_then(Value::as_array).map(Vec::as_slice).unwrap_or_default();
+        let formats =
+            carried.iter().enumerate().flat_map(|(place, piece)| read_piece(place, piece)).collect::<Vec<_>>();
         if formats.is_empty() {
             return Err(RuntimeXError::Empty);
         }
-        let author = answer
-            .pointer("/user/screen_name")
-            .and_then(Value::as_str)
-            .unwrap_or("tweet");
+        let author = answer.pointer("/user/screen_name").and_then(Value::as_str).unwrap_or("tweet");
         Ok(Extraction::Media(Media::new(
             id.clone(),
-            MediaSyntax.metadata([(
-                "title".to_owned(),
-                MediaSyntax.string_metadata(format!("{author}-{id}")),
-            )]),
+            MediaSyntax.metadata([("title".to_owned(), MediaSyntax.string_metadata(format!("{author}-{id}")))]),
             formats,
         )))
     }
@@ -89,11 +74,7 @@ impl RuntimeEnvironment {
 
 /// States every format one piece of a tweet offers.
 fn read_piece(place: usize, piece: &Value) -> Vec<Format> {
-    let Some(kind) = piece
-        .get("type")
-        .and_then(Value::as_str)
-        .and_then(attachment_kind::from)
-    else {
+    let Some(kind) = piece.get("type").and_then(Value::as_str).and_then(attachment_kind::from) else {
         return Vec::new();
     };
     let place = place + 1;
@@ -106,9 +87,7 @@ fn read_piece(place: usize, piece: &Value) -> Vec<Format> {
             .map(Vec::as_slice)
             .unwrap_or_default()
             .iter()
-            .filter(|variant| {
-                variant.get("content_type").and_then(Value::as_str) == Some("video/mp4")
-            })
+            .filter(|variant| variant.get("content_type").and_then(Value::as_str) == Some("video/mp4"))
             .filter_map(|variant| read_variant(place, kind, variant))
             .collect(),
         AttachmentKind::Photo => piece
@@ -132,32 +111,14 @@ fn read_variant(place: usize, kind: AttachmentKind, variant: &Value) -> Option<F
     Some(MediaSyntax.format(
         identity,
         MediaSyntax.metadata([
-            (
-                FORMAT_SOURCE.to_owned(),
-                MediaSyntax.string_metadata(address),
-            ),
-            (
-                FORMAT_EXTENSION.to_owned(),
-                MediaSyntax.string_metadata("mp4"),
-            ),
-            (
-                FORMAT_HAS_VIDEO.to_owned(),
-                MediaSyntax.boolean_metadata(true),
-            ),
+            (FORMAT_SOURCE.to_owned(), MediaSyntax.string_metadata(address)),
+            (FORMAT_EXTENSION.to_owned(), MediaSyntax.string_metadata("mp4")),
+            (FORMAT_HAS_VIDEO.to_owned(), MediaSyntax.boolean_metadata(true)),
             // An animation carries no sound, and is a video in every other way.
-            (
-                FORMAT_HAS_AUDIO.to_owned(),
-                MediaSyntax.boolean_metadata(kind == AttachmentKind::Video),
-            ),
-            (
-                X_KIND.to_owned(),
-                MediaSyntax.string_metadata(attachment_kind::to(kind)),
-            ),
+            (FORMAT_HAS_AUDIO.to_owned(), MediaSyntax.boolean_metadata(kind == AttachmentKind::Video)),
+            (X_KIND.to_owned(), MediaSyntax.string_metadata(attachment_kind::to(kind))),
             ("bitrate".to_owned(), MediaSyntax.integer_metadata(bitrate)),
-            (
-                "quality".to_owned(),
-                MediaSyntax.string_metadata(measured.unwrap_or_default()),
-            ),
+            ("quality".to_owned(), MediaSyntax.string_metadata(measured.unwrap_or_default())),
         ]),
     ))
 }
@@ -174,22 +135,10 @@ fn read_photo(place: usize, address: &str) -> Format {
                 // that was posted rather than one the service made to show it with.
                 MediaSyntax.string_metadata(format!("{address}?format={extension}&name=orig")),
             ),
-            (
-                FORMAT_EXTENSION.to_owned(),
-                MediaSyntax.string_metadata(extension),
-            ),
-            (
-                FORMAT_HAS_VIDEO.to_owned(),
-                MediaSyntax.boolean_metadata(false),
-            ),
-            (
-                FORMAT_HAS_AUDIO.to_owned(),
-                MediaSyntax.boolean_metadata(false),
-            ),
-            (
-                X_KIND.to_owned(),
-                MediaSyntax.string_metadata(attachment_kind::to(AttachmentKind::Photo)),
-            ),
+            (FORMAT_EXTENSION.to_owned(), MediaSyntax.string_metadata(extension)),
+            (FORMAT_HAS_VIDEO.to_owned(), MediaSyntax.boolean_metadata(false)),
+            (FORMAT_HAS_AUDIO.to_owned(), MediaSyntax.boolean_metadata(false)),
+            (X_KIND.to_owned(), MediaSyntax.string_metadata(attachment_kind::to(AttachmentKind::Photo))),
         ]),
     )
 }
@@ -202,12 +151,8 @@ fn measurement(address: &str) -> Option<String> {
             let mut sides = segment.split('x');
             let (across, down) = (sides.next(), sides.next());
             sides.next().is_none()
-                && across.is_some_and(|side| {
-                    !side.is_empty() && side.bytes().all(|b| b.is_ascii_digit())
-                })
-                && down.is_some_and(|side| {
-                    !side.is_empty() && side.bytes().all(|b| b.is_ascii_digit())
-                })
+                && across.is_some_and(|side| !side.is_empty() && side.bytes().all(|b| b.is_ascii_digit()))
+                && down.is_some_and(|side| !side.is_empty() && side.bytes().all(|b| b.is_ascii_digit()))
         })
         .map(str::to_owned)
 }

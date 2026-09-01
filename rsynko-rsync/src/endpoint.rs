@@ -8,12 +8,7 @@ pub trait RsyncEndpointAlg: RsyncSorts {
     /// Defines one endpoint from the account, the machine, and the path it names.
     ///
     /// An endpoint naming no machine names a path on this one.
-    fn endpoint(
-        &self,
-        user: Option<String>,
-        host: Option<String>,
-        path: impl Into<String>,
-    ) -> Self::Endpoint;
+    fn endpoint(&self, user: Option<String>, host: Option<String>, path: impl Into<String>) -> Self::Endpoint;
 }
 
 /// Specifies what one endpoint states about itself.
@@ -68,15 +63,11 @@ where
     /// naming how rather than what — the program itself, and the arguments given to it — is
     /// already stated by the transfer, so a whole command can be submitted and still be read.
     fn read_transfer(&self, line: &str) -> Option<(This::Endpoint, This::Endpoint)> {
-        let mut ends = line
-            .split_whitespace()
-            .filter(|word| !word.starts_with('-') && *word != RSYNC_WORD);
+        let mut ends = line.split_whitespace().filter(|word| !word.starts_with('-') && *word != RSYNC_WORD);
         let source = ends.next()?;
         let destination = ends.next()?;
         // A line naming a third end names something this specification cannot read.
-        ends.next()
-            .is_none()
-            .then(|| (self.read_endpoint(source), self.read_endpoint(destination)))
+        ends.next().is_none().then(|| (self.read_endpoint(source), self.read_endpoint(destination)))
     }
 
     /// Observes whether the path rests on another machine.
@@ -99,18 +90,11 @@ where
     /// Names what the path ends with, without the path that leads to it.
     fn endpoint_name<'a>(&self, endpoint: &'a This::Endpoint) -> &'a str {
         let path = self.endpoint_path(endpoint);
-        path.trim_end_matches('/')
-            .rsplit('/')
-            .find(|segment| !segment.is_empty())
-            .unwrap_or(path)
+        path.trim_end_matches('/').rsplit('/').find(|segment| !segment.is_empty()).unwrap_or(path)
     }
 }
 
 /// Splits an account from the machine it reaches.
 fn split_account(authority: &str) -> (Option<String>, &str) {
-    authority
-        .split_once('@')
-        .map_or((None, authority), |(user, host)| {
-            (Some(user.to_owned()), host)
-        })
+    authority.split_once('@').map_or((None, authority), |(user, host)| (Some(user.to_owned()), host))
 }

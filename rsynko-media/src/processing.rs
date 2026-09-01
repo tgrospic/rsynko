@@ -79,8 +79,7 @@ where
 #[ext(name = ProcessingExt)]
 pub impl<This, Step, Program> This
 where
-    This:
-        ProcessingApplyAlg<Step = Step> + ProcessingProgramViewAlg<Step = Step, Program = Program>,
+    This: ProcessingApplyAlg<Step = Step> + ProcessingProgramViewAlg<Step = Step, Program = Program>,
 {
     /// Interprets every step in declaration order.
     ///
@@ -96,11 +95,7 @@ where
     /// # Errors
     ///
     /// Returns the first selected step-application error and does not apply later selected steps.
-    fn run_processing_stage(
-        &mut self,
-        program: &Program,
-        stage: ProcessingStage,
-    ) -> Result<(), This::Error> {
+    fn run_processing_stage(&mut self, program: &Program, stage: ProcessingStage) -> Result<(), This::Error> {
         This::processing_steps(program)
             .filter(|step| This::processing_stage(step) == stage)
             .try_for_each(|step| self.apply_processing_step(step))

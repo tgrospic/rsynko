@@ -44,17 +44,8 @@ impl YoutubeRequestAlg for YoutubeRequestSyntax {
         YoutubeRequest::Watch(url.into())
     }
 
-    fn player_request(
-        &self,
-        id: impl Into<String>,
-        api_key: impl Into<String>,
-        claim: &PlayerClaim,
-    ) -> Self::Request {
-        YoutubeRequest::Player {
-            id: id.into(),
-            api_key: api_key.into(),
-            claim: claim.clone(),
-        }
+    fn player_request(&self, id: impl Into<String>, api_key: impl Into<String>, claim: &PlayerClaim) -> Self::Request {
+        YoutubeRequest::Player { id: id.into(), api_key: api_key.into(), claim: claim.clone() }
     }
 
     fn player_program_request(&self, url: impl Into<String>) -> Self::Request {
@@ -125,10 +116,8 @@ impl ReferenceYoutubeEnv {
     /// States the player bytes the reference player request answers with.
     #[must_use]
     pub fn player_bytes() -> Vec<u8> {
-        format!(
-            "status=OK\ntitle=Law Video\nformat=18;{REFERENCE_MEDIA_EXTENSION};{REFERENCE_MEDIA_URL}\n"
-        )
-        .into_bytes()
+        format!("status=OK\ntitle=Law Video\nformat=18;{REFERENCE_MEDIA_EXTENSION};{REFERENCE_MEDIA_URL}\n")
+            .into_bytes()
     }
 }
 
@@ -142,12 +131,7 @@ impl YoutubeRequestAlg for ReferenceYoutubeEnv {
         YoutubeRequestSyntax.watch_request(url)
     }
 
-    fn player_request(
-        &self,
-        id: impl Into<String>,
-        api_key: impl Into<String>,
-        claim: &PlayerClaim,
-    ) -> Self::Request {
+    fn player_request(&self, id: impl Into<String>, api_key: impl Into<String>, claim: &PlayerClaim) -> Self::Request {
         YoutubeRequestSyntax.player_request(id, api_key, claim)
     }
 
@@ -168,11 +152,7 @@ impl YoutubeClientAlg for ReferenceYoutubeEnv {
 
 impl YoutubeProgramAlg for ReferenceYoutubeEnv {
     fn program_timestamp(&self, program: &str) -> Option<i64> {
-        program
-            .lines()
-            .find_map(|line| line.strip_prefix("timestamp="))?
-            .parse()
-            .ok()
+        program.lines().find_map(|line| line.strip_prefix("timestamp="))?.parse().ok()
     }
 }
 
@@ -186,15 +166,11 @@ impl YoutubeRequestBytesAlg for ReferenceYoutubeEnv {
             YoutubeRequest::PlayerProgram(url) if url == REFERENCE_PLAYER_PROGRAM_URL => {
                 Ok(REFERENCE_PLAYER_PROGRAM.as_bytes().to_vec())
             }
-            YoutubeRequest::Player { id, .. } if id == REFERENCE_VIDEO_ID => {
-                Ok(Self::player_bytes())
+            YoutubeRequest::Player { id, .. } if id == REFERENCE_VIDEO_ID => Ok(Self::player_bytes()),
+            YoutubeRequest::Watch(url) | YoutubeRequest::PlayerProgram(url) | YoutubeRequest::Media(url) => {
+                Err(ReferenceFetchError::UnknownResource(url.clone()))
             }
-            YoutubeRequest::Watch(url)
-            | YoutubeRequest::PlayerProgram(url)
-            | YoutubeRequest::Media(url) => Err(ReferenceFetchError::UnknownResource(url.clone())),
-            YoutubeRequest::Player { id, .. } => {
-                Err(ReferenceFetchError::UnknownResource(id.clone()))
-            }
+            YoutubeRequest::Player { id, .. } => Err(ReferenceFetchError::UnknownResource(id.clone())),
         }
     }
 }
@@ -215,11 +191,8 @@ impl YoutubeResponseAlg for ReferenceYoutubeEnv {
 
     fn decode_youtube_player(&self, bytes: &[u8]) -> Result<YoutubePlayer, Self::Error> {
         let fields = decode_fields(bytes)?;
-        let formats = fields
-            .iter()
-            .filter(|(key, _)| key == "format")
-            .filter_map(|(_, value)| decode_format(value))
-            .collect();
+        let formats =
+            fields.iter().filter(|(key, _)| key == "format").filter_map(|(_, value)| decode_format(value)).collect();
         Ok(YoutubePlayer {
             status: field(&fields, "status").map(str::to_owned),
             reason: field(&fields, "reason").map(str::to_owned),
@@ -271,15 +244,8 @@ impl YoutubeChallengeAlg for ReferenceYoutubeEnv {
 }
 
 impl YoutubeSolutionAlg for ReferenceYoutubeEnv {
-    fn solution_of(
-        &self,
-        solutions: &Self::Solutions,
-        challenge: &YoutubeChallenge,
-    ) -> Option<String> {
-        solutions
-            .iter()
-            .find(|(posed, _)| posed == challenge)
-            .map(|(_, solution)| solution.clone())
+    fn solution_of(&self, solutions: &Self::Solutions, challenge: &YoutubeChallenge) -> Option<String> {
+        solutions.iter().find(|(posed, _)| posed == challenge).map(|(_, solution)| solution.clone())
     }
 }
 
@@ -287,10 +253,7 @@ impl YoutubeSolutionAlg for ReferenceYoutubeEnv {
 ///
 /// Publication, progress, and reporting are the shared download interpreter's; only locating the
 /// bytes is Youtube-specific, so only that is stated here.
-#[allow(
-    clippy::duplicated_attributes,
-    reason = "one delegation per capability, not per target"
-)]
+#[allow(clippy::duplicated_attributes, reason = "one delegation per capability, not per target")]
 #[derive(Debug, Default, Delegate)]
 #[delegate(AtomicPublishAlg, target = "resources")]
 #[delegate(DownloadObservationAlg, target = "resources")]
@@ -336,35 +299,25 @@ impl FetchStreamAlg<YoutubeRequest> for ReferenceYoutubeDownloadEnv {
     type Error = ReferenceFetchError;
     type Stream = Cursor<Vec<u8>>;
 
-    fn open_fetch(
-        &self,
-        request: &YoutubeRequest,
-    ) -> Result<FetchStream<Self::Stream>, Self::Error> {
+    fn open_fetch(&self, request: &YoutubeRequest) -> Result<FetchStream<Self::Stream>, Self::Error> {
         self.opened.borrow_mut().push(request.clone());
         match request {
             YoutubeRequest::Media(url) => self.resources.open_fetch(url),
             YoutubeRequest::Watch(url) | YoutubeRequest::PlayerProgram(url) => {
                 Err(ReferenceFetchError::UnknownResource(url.clone()))
             }
-            YoutubeRequest::Player { id, .. } => {
-                Err(ReferenceFetchError::UnknownResource(id.clone()))
-            }
+            YoutubeRequest::Player { id, .. } => Err(ReferenceFetchError::UnknownResource(id.clone())),
         }
     }
 
-    fn read_fetch(
-        &self,
-        stream: &mut Self::Stream,
-        buffer: &mut [u8],
-    ) -> Result<usize, Self::Error> {
+    fn read_fetch(&self, stream: &mut Self::Stream, buffer: &mut [u8]) -> Result<usize, Self::Error> {
         self.resources.read_fetch(stream, buffer)
     }
 }
 
 /// Reads the `key=value` lines one reference response states.
 fn decode_fields(bytes: &[u8]) -> Result<Vec<(String, String)>, ReferenceFetchError> {
-    let text = from_utf8(bytes)
-        .map_err(|_| ReferenceFetchError::UnknownResource("undecodable response".to_owned()))?;
+    let text = from_utf8(bytes).map_err(|_| ReferenceFetchError::UnknownResource("undecodable response".to_owned()))?;
     Ok(text
         .lines()
         .filter_map(|line| line.split_once('='))
@@ -374,10 +327,7 @@ fn decode_fields(bytes: &[u8]) -> Result<Vec<(String, String)>, ReferenceFetchEr
 
 /// Observes the first value stated under one field name.
 fn field<'a>(fields: &'a [(String, String)], key: &str) -> Option<&'a str> {
-    fields
-        .iter()
-        .find(|(name, _)| name == key)
-        .map(|(_, value)| value.as_str())
+    fields.iter().find(|(name, _)| name == key).map(|(_, value)| value.as_str())
 }
 
 /// Reads one `itag;extension;url` format description.

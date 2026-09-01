@@ -65,11 +65,7 @@ where
     ///
     /// Returns the first violated law.
     fn check_endpoint_laws(&self) -> Result<()> {
-        for text in [
-            "backup@nas.local:/volume1/photos",
-            "nas.local:/volume1/photos",
-            "/home/dev/photos",
-        ] {
+        for text in ["backup@nas.local:/volume1/photos", "nas.local:/volume1/photos", "/home/dev/photos"] {
             let endpoint = self.read_endpoint(text);
             let stated = self.endpoint_text(&endpoint);
             if stated != text {
@@ -79,10 +75,7 @@ where
                 bail!("{text} disagrees about which machine it rests on");
             }
         }
-        for elsewhere in [
-            "https://www.youtube.com/watch?v=VIDEO_ID",
-            "fixture://single-video",
-        ] {
+        for elsewhere in ["https://www.youtube.com/watch?v=VIDEO_ID", "fixture://single-video"] {
             if self.endpoint_remote(&self.read_endpoint(elsewhere)) {
                 bail!("{elsewhere} names a resource, and was read as a path on a machine");
             }
@@ -109,11 +102,9 @@ where
         let from = "backup@nas.local:/volume1/photos";
         let into = "/home/dev/photos";
         // A transfer is written the way it is run, and a whole command is written the same way.
-        for line in [
-            format!("{from} {into}"),
-            format!("  {from}   {into}  "),
-            format!("rsync -a --dry-run {from} {into}"),
-        ] {
+        for line in
+            [format!("{from} {into}"), format!("  {from}   {into}  "), format!("rsync -a --dry-run {from} {into}")]
+        {
             let Some((source, destination)) = self.read_transfer(&line) else {
                 bail!("{line} names two ends, and was read as naming none");
             };
@@ -145,11 +136,7 @@ where
         if self.command_rehearses(&transfer) {
             bail!("a transfer states that it changes nothing");
         }
-        let mirror = self.transfer_command(
-            &source,
-            &destination,
-            SyncMode::transfer().profiled(SyncProfile::Mirror),
-        );
+        let mirror = self.transfer_command(&source, &destination, SyncMode::transfer().profiled(SyncProfile::Mirror));
         if !self.command_mirrors(&mirror) {
             bail!("a mirroring transfer does not state that it removes");
         }
@@ -159,16 +146,9 @@ where
         // Every way of transferring is one job, stated as exactly the arguments that make it one.
         for (place, profile) in sync_profile::ALL.iter().copied().enumerate() {
             let named = sync_profile::to(profile);
-            let stated = self.transfer_command(
-                &source,
-                &destination,
-                SyncMode::transfer().profiled(profile),
-            );
+            let stated = self.transfer_command(&source, &destination, SyncMode::transfer().profiled(profile));
             for argument in profile.profile_arguments() {
-                if !self
-                    .command_arguments(&stated)
-                    .any(|stated| stated == *argument)
-                {
+                if !self.command_arguments(&stated).any(|stated| stated == *argument) {
                     bail!("{named} does not ask for {argument}");
                 }
             }
@@ -178,10 +158,7 @@ where
             // What each way does is stated beside the variant, and the compiler states that every
             // variant states it. That each is named by its own word it cannot state, and a shared
             // word would leave one of them unreachable.
-            if sync_profile::ALL[..place]
-                .iter()
-                .any(|earlier| sync_profile::to(*earlier) == named)
-            {
+            if sync_profile::ALL[..place].iter().any(|earlier| sync_profile::to(*earlier) == named) {
                 bail!("two ways of transferring are named {named}");
             }
             if profile.summary().is_empty() {
@@ -191,9 +168,7 @@ where
         if sync_profile::from("nothing anybody would call a transfer").is_some() {
             bail!("a word naming no way of transferring names one");
         }
-        if self.command_arguments(&transfer).last()
-            != Some(self.endpoint_text(&destination).as_str())
-        {
+        if self.command_arguments(&transfer).last() != Some(self.endpoint_text(&destination).as_str()) {
             bail!("a transfer does not end by naming where it writes");
         }
         // A trailing separator says "the contents of", and its absence says "this, into": both
@@ -201,10 +176,7 @@ where
         for written in ["/home/dev/photos", "/home/dev/photos/"] {
             let end = self.read_endpoint(written);
             let stated = self.transfer_command(&end, &destination, SyncMode::transfer());
-            if !self
-                .command_arguments(&stated)
-                .any(|argument| argument == written)
-            {
+            if !self.command_arguments(&stated).any(|argument| argument == written) {
                 bail!("{written} is not transferred as it was written");
             }
         }
@@ -222,16 +194,11 @@ where
             (">f+++++++++|3284921|IMG_0431.jpg", Some(ChangeKind::Create)),
             (">f.st......|1204|album.json", Some(ChangeKind::Update)),
             ("cd+++++++++|0|old/", Some(ChangeKind::Create)),
-            (
-                ".f         |2400000|IMG_0001.jpg",
-                Some(ChangeKind::Unchanged),
-            ),
+            (".f         |2400000|IMG_0001.jpg", Some(ChangeKind::Unchanged)),
             ("*deleting  |0|old/IMG_0090.jpg", Some(ChangeKind::Delete)),
         ] {
             let observation = self.read_sync_line(line);
-            let stated = self
-                .observation_change(&observation)
-                .map(PlannedChangeAlg::change_kind);
+            let stated = self.observation_change(&observation).map(PlannedChangeAlg::change_kind);
             if stated != expected {
                 bail!("{line} states {stated:?} rather than {expected:?}");
             }
@@ -241,9 +208,7 @@ where
             bail!("a progress line does not state how far the transfer has come");
         }
         let unread = self.read_sync_line("sending incremental file list");
-        if self.observation_change(&unread).is_some()
-            || self.observation_progress(&unread).is_some()
-        {
+        if self.observation_change(&unread).is_some() || self.observation_progress(&unread).is_some() {
             bail!("a line naming nothing is read as something");
         }
         Ok(())
@@ -270,16 +235,9 @@ where
         let Ok(changes) = self.run_sync(&rehearsal) else {
             bail!("the rehearsal refused to run");
         };
-        let named = changes
-            .iter()
-            .map(|change| (change.change_path().to_owned(), change.change_kind()))
-            .collect::<Vec<_>>();
-        if named
-            != vec![
-                ("new.txt".to_owned(), ChangeKind::Create),
-                ("gone.txt".to_owned(), ChangeKind::Delete),
-            ]
-        {
+        let named =
+            changes.iter().map(|change| (change.change_path().to_owned(), change.change_kind())).collect::<Vec<_>>();
+        if named != vec![("new.txt".to_owned(), ChangeKind::Create), ("gone.txt".to_owned(), ChangeKind::Delete)] {
             bail!("a run states {named:?} rather than the changes its lines named");
         }
         if !self.law_ran(&rehearsal) {

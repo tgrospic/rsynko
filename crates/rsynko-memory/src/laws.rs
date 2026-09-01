@@ -6,14 +6,12 @@
 //! syntax interpreters the compiler leaves no trace of it.
 
 use crate::{
-    Extraction, Format, InfoRecord, ManagerState, Media, MediaSyntax, ProcessingStep,
-    ProcessingSyntax, ProcessorId, REFERENCE_MEDIA_EXTENSION, REFERENCE_MEDIA_URL,
-    REFERENCE_VIDEO_ID, REFERENCE_WATCH_URL, ReferenceDownloadEnv, ReferenceExtractor,
-    ReferenceExtractorRegistry, ReferenceYoutubeDownloadEnv, ReferenceYoutubeEnv, YoutubeRequest,
+    Extraction, Format, InfoRecord, ManagerState, Media, MediaSyntax, ProcessingStep, ProcessingSyntax, ProcessorId,
+    REFERENCE_MEDIA_EXTENSION, REFERENCE_MEDIA_URL, REFERENCE_VIDEO_ID, REFERENCE_WATCH_URL, ReferenceDownloadEnv,
+    ReferenceExtractor, ReferenceExtractorRegistry, ReferenceYoutubeDownloadEnv, ReferenceYoutubeEnv, YoutubeRequest,
 };
 use crate::{
-    MemoryManager, PlannedChange, QueueEntry, ReferenceSyncEnv, RsyncEndpoint, SyncCommand,
-    SyncObservation, TextScreen,
+    MemoryManager, PlannedChange, QueueEntry, ReferenceSyncEnv, RsyncEndpoint, SyncCommand, SyncObservation, TextScreen,
 };
 use ambassador::Delegate;
 use rsynko_download::*;
@@ -34,10 +32,7 @@ pub struct ReferenceProcessingRefusal(String);
 
 /// Composes reference interpreters into one context that satisfies every law scenario.
 // Several capabilities delegate to the same component, which Clippy reads as a repeated attribute.
-#[allow(
-    clippy::duplicated_attributes,
-    reason = "one delegation per capability, not per target"
-)]
+#[allow(clippy::duplicated_attributes, reason = "one delegation per capability, not per target")]
 #[derive(Debug, Delegate)]
 #[delegate(MetadataAlg, target = "syntax")]
 #[delegate(FormatAlg, target = "syntax")]
@@ -90,29 +85,13 @@ pub struct ReferenceProcessingRefusal(String);
 #[delegate(MediaOptionsAlg, target = "manager")]
 #[delegate(OutputChoiceAlg, target = "manager")]
 #[delegate(YoutubeUrlAlg, target = "youtube")]
-#[delegate(
-    YoutubeRequestAlg,
-    target = "youtube",
-    where = "Youtube: YoutubeRequestAlg + YoutubeSorts"
-)]
+#[delegate(YoutubeRequestAlg, target = "youtube", where = "Youtube: YoutubeRequestAlg + YoutubeSorts")]
 #[delegate(YoutubeProgramAlg, target = "youtube")]
 #[delegate(YoutubeClientAlg, target = "youtube")]
-#[delegate(
-    YoutubeRequestBytesAlg,
-    target = "youtube",
-    where = "Youtube: YoutubeRequestBytesAlg + YoutubeSorts"
-)]
+#[delegate(YoutubeRequestBytesAlg, target = "youtube", where = "Youtube: YoutubeRequestBytesAlg + YoutubeSorts")]
 #[delegate(YoutubeResponseAlg, target = "youtube")]
-#[delegate(
-    YoutubeChallengeAlg,
-    target = "youtube",
-    where = "Youtube: YoutubeChallengeAlg + YoutubeSorts"
-)]
-#[delegate(
-    YoutubeSolutionAlg,
-    target = "youtube",
-    where = "Youtube: YoutubeSolutionAlg + YoutubeSorts"
-)]
+#[delegate(YoutubeChallengeAlg, target = "youtube", where = "Youtube: YoutubeChallengeAlg + YoutubeSorts")]
+#[delegate(YoutubeSolutionAlg, target = "youtube", where = "Youtube: YoutubeSolutionAlg + YoutubeSorts")]
 #[delegate(AtomicPublishAlg, target = "downloads")]
 #[delegate(RsyncEndpointAlg, target = "sync")]
 #[delegate(RsyncEndpointViewAlg, target = "sync")]
@@ -177,10 +156,7 @@ impl<Syntax, Programs, Catalog, Downloads, Youtube, Manager> SubmissionLawFixtur
     }
 
     fn law_lone_submission(&self) -> (String, String) {
-        (
-            "backup@nas.local:/volume1/photos/2026/".to_owned(),
-            "2026".to_owned(),
-        )
+        ("backup@nas.local:/volume1/photos/2026/".to_owned(), "2026".to_owned())
     }
 }
 
@@ -254,11 +230,7 @@ impl Default for ReferenceLaws {
             catalog.push(ReferenceExtractor::succeeds(
                 key,
                 "https://example.test/",
-                Extraction::Media(Media::new(
-                    key.to_owned(),
-                    InfoRecord::default(),
-                    Vec::default(),
-                )),
+                Extraction::Media(Media::new(key.to_owned(), InfoRecord::default(), Vec::default())),
             ));
         }
         let mut downloads = ReferenceDownloadEnv::default();
@@ -370,8 +342,8 @@ where
     type Solutions = Solutions;
 }
 
-impl<Syntax, Programs, Catalog, Downloads, Youtube, Manager, Processor, Step, Program>
-    ProcessingSorts for LawEnv<Syntax, Programs, Catalog, Downloads, Youtube, Manager>
+impl<Syntax, Programs, Catalog, Downloads, Youtube, Manager, Processor, Step, Program> ProcessingSorts
+    for LawEnv<Syntax, Programs, Catalog, Downloads, Youtube, Manager>
 where
     Programs: ProcessingSorts<Processor = Processor, Step = Step, Program = Program>,
 {
@@ -400,8 +372,8 @@ where
 
 // Retrieval is delegated by hand: the fixture states its source sort, and the component
 // interprets the default one.
-impl<Syntax, Programs, Catalog, Downloads, Youtube, Manager, FetchError, Stream>
-    FetchStreamAlg<String> for LawEnv<Syntax, Programs, Catalog, Downloads, Youtube, Manager>
+impl<Syntax, Programs, Catalog, Downloads, Youtube, Manager, FetchError, Stream> FetchStreamAlg<String>
+    for LawEnv<Syntax, Programs, Catalog, Downloads, Youtube, Manager>
 where
     Downloads: FetchStreamAlg<Error = FetchError, Stream = Stream>,
 {
@@ -412,11 +384,7 @@ where
         self.downloads.open_fetch(source)
     }
 
-    fn read_fetch(
-        &self,
-        stream: &mut Self::Stream,
-        buffer: &mut [u8],
-    ) -> Result<usize, Self::Error> {
+    fn read_fetch(&self, stream: &mut Self::Stream, buffer: &mut [u8]) -> Result<usize, Self::Error> {
         self.downloads.read_fetch(stream, buffer)
     }
 }
@@ -462,11 +430,7 @@ impl ExtractionLawFixture for ReferenceLaws {
     }
 
     fn law_applied_extractors(&self) -> Vec<String> {
-        self.catalog
-            .applications()
-            .iter()
-            .map(|key| key.0.clone())
-            .collect()
+        self.catalog.applications().iter().map(|key| key.0.clone()).collect()
     }
 }
 
@@ -518,11 +482,7 @@ impl DownloadLawFixture for ReferenceLaws {
         self.downloads.refuse_publication();
     }
     fn law_progress(&self) -> Vec<u64> {
-        self.downloads
-            .progress()
-            .iter()
-            .map(|observed| observed.downloaded)
-            .collect()
+        self.downloads.progress().iter().map(|observed| observed.downloaded).collect()
     }
     fn law_terminal_events(&self) -> usize {
         self.downloads.events().len()
@@ -607,8 +567,7 @@ where
     }
 }
 
-impl<Syntax, Programs, Catalog, Downloads, Youtube, Manager, FetchError, Stream>
-    FetchStreamAlg<YoutubeRequest>
+impl<Syntax, Programs, Catalog, Downloads, Youtube, Manager, FetchError, Stream> FetchStreamAlg<YoutubeRequest>
     for LawEnv<Syntax, Programs, Catalog, Downloads, Youtube, Manager>
 where
     Downloads: FetchStreamAlg<YoutubeRequest, Error = FetchError, Stream = Stream>,
@@ -616,18 +575,11 @@ where
     type Error = FetchError;
     type Stream = Stream;
 
-    fn open_fetch(
-        &self,
-        request: &YoutubeRequest,
-    ) -> Result<FetchStream<Self::Stream>, Self::Error> {
+    fn open_fetch(&self, request: &YoutubeRequest) -> Result<FetchStream<Self::Stream>, Self::Error> {
         self.downloads.open_fetch(request)
     }
 
-    fn read_fetch(
-        &self,
-        stream: &mut Self::Stream,
-        buffer: &mut [u8],
-    ) -> Result<usize, Self::Error> {
+    fn read_fetch(&self, stream: &mut Self::Stream, buffer: &mut [u8]) -> Result<usize, Self::Error> {
         self.downloads.read_fetch(stream, buffer)
     }
 }
@@ -635,10 +587,6 @@ where
 // The downloads collection is the memory interpreter's own manager state, so it observes itself.
 impl DownloadsLawFixture for MemoryManager {
     fn law_collected_sources(&self, downloads: &Self::Downloads) -> Vec<String> {
-        downloads
-            .queue()
-            .iter()
-            .map(|entry| QueueEntry::label(entry).to_owned())
-            .collect()
+        downloads.queue().iter().map(|entry| QueueEntry::label(entry).to_owned()).collect()
     }
 }

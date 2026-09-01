@@ -40,11 +40,7 @@ pub trait YoutubeChallengeAlg: YoutubeSorts {
 #[delegatable_trait]
 pub trait YoutubeSolutionAlg: YoutubeSorts {
     /// Observes the solution of one challenge exactly when that challenge was resolved.
-    fn solution_of(
-        &self,
-        solutions: &Self::Solutions,
-        challenge: &YoutubeChallenge,
-    ) -> Option<String>;
+    fn solution_of(&self, solutions: &Self::Solutions, challenge: &YoutubeChallenge) -> Option<String>;
 }
 
 /// Names the query parameter carrying a solved signature when a format states no other.
@@ -172,8 +168,7 @@ where
             .into_iter()
             .flat_map(|format| {
                 [
-                    self.throttle_challenge(format.source.url())
-                        .map(YoutubeChallenge::Throttle),
+                    self.throttle_challenge(format.source.url()).map(YoutubeChallenge::Throttle),
                     format.source.signature_challenge(),
                 ]
             })
@@ -199,12 +194,7 @@ where
                 None => throttled = Some(challenge),
             }
         }
-        if let YoutubeFormatSource::Signed {
-            signature,
-            parameter,
-            ..
-        } = &format.source
-        {
+        if let YoutubeFormatSource::Signed { signature, parameter, .. } = &format.source {
             let challenge = YoutubeChallenge::Signature(signature.clone());
             match self.solution_of(solutions, &challenge) {
                 Some(solution) => url = self.with_signature(&url, parameter, &solution),
@@ -212,15 +202,8 @@ where
             }
         }
         throttled.map_or_else(
-            || YoutubeGrant::Granted {
-                id: id.clone(),
-                url: url.clone(),
-            },
-            |challenge| YoutubeGrant::Throttled {
-                id: id.clone(),
-                url: url.clone(),
-                challenge,
-            },
+            || YoutubeGrant::Granted { id: id.clone(), url: url.clone() },
+            |challenge| YoutubeGrant::Throttled { id: id.clone(), url: url.clone(), challenge },
         )
     }
 
@@ -229,15 +212,8 @@ where
     /// # Errors
     ///
     /// Returns the interpreter-specific resolution failure.
-    fn grant_formats(
-        &self,
-        program: &str,
-        formats: &[YoutubeFormat],
-    ) -> Result<Vec<YoutubeGrant>, ChallengeError> {
+    fn grant_formats(&self, program: &str, formats: &[YoutubeFormat]) -> Result<Vec<YoutubeGrant>, ChallengeError> {
         let solutions = self.solve_challenges(program, self.format_challenges(formats))?;
-        Ok(formats
-            .iter()
-            .map(|format| self.grant_format(format, &solutions))
-            .collect())
+        Ok(formats.iter().map(|format| self.grant_format(format, &solutions)).collect())
     }
 }

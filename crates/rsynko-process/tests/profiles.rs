@@ -6,9 +6,7 @@
 
 use rsynko_manager::PlannedChangeAlg;
 use rsynko_process::ProcessSyncEnv;
-use rsynko_rsync::{
-    RsyncEndpointExt, SYNC_PROGRAM, SyncCommandExt, SyncMode, SyncProfile, SyncProgramExt,
-};
+use rsynko_rsync::{RsyncEndpointExt, SYNC_PROGRAM, SyncCommandExt, SyncMode, SyncProfile, SyncProgramExt};
 use std::fs::{File, create_dir_all, read, write};
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
@@ -62,13 +60,7 @@ impl Situation {
             .run_sync(&command)
             .expect("the transfer runs")
             .iter()
-            .map(|change| {
-                format!(
-                    "{:?} {}",
-                    change.change_kind(),
-                    change.change_path().trim_end_matches('/')
-                )
-            })
+            .map(|change| format!("{:?} {}", change.change_kind(), change.change_path().trim_end_matches('/')))
             .collect()
     }
 }
@@ -83,10 +75,7 @@ fn wrote(path: &Path, bytes: &[u8]) {
 
 /// Stamps one file with a time, so what a transfer compares is decided rather than raced.
 fn stamped(path: &Path, seconds_ago: u64) {
-    let file = File::options()
-        .write(true)
-        .open(path)
-        .expect("a stamped file");
+    let file = File::options().write(true).open(path).expect("a stamped file");
     let stamp = SystemTime::now() - Duration::from_secs(seconds_ago);
     file.set_modified(stamp).expect("a stamped time");
 }
@@ -95,10 +84,7 @@ fn stamped(path: &Path, seconds_ago: u64) {
 fn with_an_extra_file() -> Situation {
     let situation = Situation::new();
     wrote(&situation.source("kept.txt"), b"from the source");
-    wrote(
-        &situation.destination("extra.txt"),
-        b"nobody asked for this",
-    );
+    wrote(&situation.destination("extra.txt"), b"nobody asked for this");
     situation
 }
 
@@ -111,10 +97,7 @@ fn copy_adds_and_replaces_and_removes_nothing() {
 
     situation.transferred(SyncProfile::Copy);
 
-    assert_eq!(
-        read(situation.destination("kept.txt")).unwrap(),
-        b"from the source"
-    );
+    assert_eq!(read(situation.destination("kept.txt")).unwrap(), b"from the source");
     assert!(situation.destination("extra.txt").exists());
 }
 
@@ -145,15 +128,9 @@ fn mirror_keeping_keeps_what_it_replaces() {
 
     situation.transferred(SyncProfile::MirrorKeeping);
 
-    assert_eq!(
-        read(situation.destination("replaced.txt")).unwrap(),
-        b"the new text"
-    );
+    assert_eq!(read(situation.destination("replaced.txt")).unwrap(), b"the new text");
     // The replaced text is kept beside what replaced it.
-    assert_eq!(
-        read(situation.destination("replaced.txt~")).unwrap(),
-        b"the old text"
-    );
+    assert_eq!(read(situation.destination("replaced.txt~")).unwrap(), b"the old text");
     assert!(!situation.destination("extra.txt").exists());
 }
 
@@ -168,10 +145,7 @@ fn mirror_whole_mirrors_by_sending_whole_files() {
 
     // Sending whole files rather than comparing pieces is a choice about the wire, and leaves no
     // trace at either end: what can be read here is that it mirrored.
-    assert_eq!(
-        read(situation.destination("kept.txt")).unwrap(),
-        b"from the source"
-    );
+    assert_eq!(read(situation.destination("kept.txt")).unwrap(), b"from the source");
     assert!(!situation.destination("extra.txt").exists());
 }
 
@@ -185,11 +159,8 @@ fn mirror_readable_makes_everything_readable() {
     }
     let situation = with_an_extra_file();
     wrote(&situation.source("private/secret.txt"), b"only mine");
-    std::fs::set_permissions(
-        situation.source("private/secret.txt"),
-        PermissionsExt::from_mode(0o600),
-    )
-    .expect("a private file");
+    std::fs::set_permissions(situation.source("private/secret.txt"), PermissionsExt::from_mode(0o600))
+        .expect("a private file");
 
     situation.transferred(SyncProfile::MirrorReadable);
 
@@ -211,10 +182,7 @@ fn skip_newer_replaces_nothing_newer_at_the_destination() {
 
     situation.transferred(SyncProfile::SkipNewer);
 
-    assert_eq!(
-        read(situation.destination("notes.txt")).unwrap(),
-        b"written here, later"
-    );
+    assert_eq!(read(situation.destination("notes.txt")).unwrap(), b"written here, later");
 }
 
 #[test]
@@ -239,14 +207,8 @@ fn compare_content_replaces_what_only_its_content_distinguishes() {
     read_through.transferred(SyncProfile::CompareContent);
 
     // Comparing when they changed cannot tell them apart; comparing what they hold can.
-    assert_eq!(
-        read(unread.destination("report.txt")).unwrap(),
-        b"the fake text"
-    );
-    assert_eq!(
-        read(read_through.destination("report.txt")).unwrap(),
-        b"the true text"
-    );
+    assert_eq!(read(unread.destination("report.txt")).unwrap(), b"the fake text");
+    assert_eq!(read(read_through.destination("report.txt")).unwrap(), b"the true text");
 }
 
 #[test]
@@ -277,14 +239,8 @@ fn move_removes_from_the_source_what_arrived_safely() {
 
     situation.transferred(SyncProfile::Move);
 
-    assert_eq!(
-        read(situation.destination("staged/one.txt")).unwrap(),
-        b"one"
-    );
-    assert_eq!(
-        read(situation.destination("staged/two.txt")).unwrap(),
-        b"two"
-    );
+    assert_eq!(read(situation.destination("staged/one.txt")).unwrap(), b"one");
+    assert_eq!(read(situation.destination("staged/two.txt")).unwrap(), b"two");
     assert!(!situation.source("staged/one.txt").exists());
     assert!(!situation.source("staged/two.txt").exists());
     // The folders stay: only what arrived is taken away.
@@ -302,10 +258,7 @@ fn limit_rate_transfers_what_it_was_given() {
 
     // How fast it went is not something a finished transfer states, so what is read here is that
     // limiting the rate did not change what arrived.
-    assert_eq!(
-        read(situation.destination("kept.txt")).unwrap(),
-        b"from the source"
-    );
+    assert_eq!(read(situation.destination("kept.txt")).unwrap(), b"from the source");
     assert!(situation.destination("extra.txt").exists());
 }
 
@@ -319,11 +272,7 @@ fn keep_marks_keeps_the_links_between_files() {
     }
     let situation = Situation::new();
     wrote(&situation.source("original.txt"), b"one file, two names");
-    std::fs::hard_link(
-        situation.source("original.txt"),
-        situation.source("same.txt"),
-    )
-    .expect("two names for one file");
+    std::fs::hard_link(situation.source("original.txt"), situation.source("same.txt")).expect("two names for one file");
 
     situation.transferred(SyncProfile::KeepMarks);
 
@@ -345,10 +294,7 @@ fn one_disk_transfers_what_it_was_given() {
 
     // Staying on one disk is only observable where another is mounted underneath, which a
     // temporary folder cannot arrange: what is read here is that it transferred.
-    assert_eq!(
-        read(situation.destination("kept.txt")).unwrap(),
-        b"from the source"
-    );
+    assert_eq!(read(situation.destination("kept.txt")).unwrap(), b"from the source");
 }
 
 #[test]

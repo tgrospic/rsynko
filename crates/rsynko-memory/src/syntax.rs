@@ -1,9 +1,9 @@
 //! Reference interpreters that tie the specification sorts to inspectable Rust syntax.
 
 use crate::{
-    Artifact, Collection, DownloadEvent, DownloadProgress, Extraction, ExtractorKey, Format,
-    FormatPredicate, FormatSelection, InfoRecord, InfoValue, Media, ProcessingProgram,
-    ProcessingStep, ProcessorId, UrlReference, interpret_selection, predicate_accepts,
+    Artifact, Collection, DownloadEvent, DownloadProgress, Extraction, ExtractorKey, Format, FormatPredicate,
+    FormatSelection, InfoRecord, InfoValue, Media, ProcessingProgram, ProcessingStep, ProcessorId, UrlReference,
+    interpret_selection, predicate_accepts,
 };
 use rsynko_download::DownloadObservationAlg;
 use rsynko_media::*;
@@ -109,12 +109,7 @@ impl FormatAlg for MediaSyntax {
 }
 
 impl ArtifactAlg for MediaSyntax {
-    fn artifact(
-        &self,
-        id: impl Into<String>,
-        kind: ArtifactKind,
-        metadata: Self::Metadata,
-    ) -> Self::Artifact {
+    fn artifact(&self, id: impl Into<String>, kind: ArtifactKind, metadata: Self::Metadata) -> Self::Artifact {
         Artifact::new(id.into(), kind, metadata)
     }
 }
@@ -126,11 +121,7 @@ impl ExtractionAlg for MediaSyntax {
         metadata: Self::Metadata,
         formats: impl IntoIterator<Item = Self::Format>,
     ) -> Self::Extraction {
-        Extraction::Media(Media::new(
-            id.into(),
-            metadata,
-            formats.into_iter().collect(),
-        ))
+        Extraction::Media(Media::new(id.into(), metadata, formats.into_iter().collect()))
     }
 
     fn url_reference(
@@ -149,12 +140,7 @@ impl ExtractionAlg for MediaSyntax {
         metadata: Self::Metadata,
         entries: impl IntoIterator<Item = Self::Extraction>,
     ) -> Self::Extraction {
-        Extraction::Collection(Collection::new(
-            id,
-            kind,
-            metadata,
-            entries.into_iter().collect(),
-        ))
+        Extraction::Collection(Collection::new(id, kind, metadata, entries.into_iter().collect()))
     }
 }
 
@@ -192,28 +178,13 @@ impl FormatPredicateAlg for MediaSyntax {
         FormatPredicate::Observed(key.into())
     }
     fn text_format(&self, key: impl Into<String>, value: impl Into<String>) -> Self::Predicate {
-        FormatPredicate::Text {
-            key: key.into(),
-            value: value.into(),
-        }
+        FormatPredicate::Text { key: key.into(), value: value.into() }
     }
     fn flag_format(&self, key: impl Into<String>, value: bool) -> Self::Predicate {
-        FormatPredicate::Flag {
-            key: key.into(),
-            value,
-        }
+        FormatPredicate::Flag { key: key.into(), value }
     }
-    fn number_format(
-        &self,
-        key: impl Into<String>,
-        comparison: FormatComparison,
-        value: f64,
-    ) -> Self::Predicate {
-        FormatPredicate::Number {
-            key: key.into(),
-            comparison,
-            value,
-        }
+    fn number_format(&self, key: impl Into<String>, comparison: FormatComparison, value: f64) -> Self::Predicate {
+        FormatPredicate::Number { key: key.into(), comparison, value }
     }
     fn all_formats(&self, left: Self::Predicate, right: Self::Predicate) -> Self::Predicate {
         FormatPredicate::All(Box::new(left), Box::new(right))
@@ -230,16 +201,10 @@ impl FormatSelectionAlg for MediaSyntax {
     fn worst_format(&self, predicate: Self::Predicate) -> Self::Selection {
         FormatSelection::Worst(predicate)
     }
-    fn merge_formats(
-        &self,
-        selections: impl IntoIterator<Item = Self::Selection>,
-    ) -> Self::Selection {
+    fn merge_formats(&self, selections: impl IntoIterator<Item = Self::Selection>) -> Self::Selection {
         FormatSelection::Merge(selections.into_iter().collect())
     }
-    fn fallback_formats(
-        &self,
-        selections: impl IntoIterator<Item = Self::Selection>,
-    ) -> Self::Selection {
+    fn fallback_formats(&self, selections: impl IntoIterator<Item = Self::Selection>) -> Self::Selection {
         FormatSelection::Fallback(selections.into_iter().collect())
     }
 }
@@ -303,27 +268,16 @@ impl DownloadObservationAlg for DownloadSyntax {
     type Event = DownloadEvent;
     type Progress = DownloadProgress;
 
-    fn download_progress(
-        &self,
-        destination: &Path,
-        downloaded: u64,
-        total: Option<u64>,
-    ) -> Self::Progress {
+    fn download_progress(&self, destination: &Path, downloaded: u64, total: Option<u64>) -> Self::Progress {
         DownloadProgress::new(destination.to_owned(), downloaded, total)
     }
 
     fn download_succeeded(&self, destination: &Path, bytes: u64) -> Self::Event {
-        DownloadEvent::Succeeded {
-            destination: destination.to_owned(),
-            bytes,
-        }
+        DownloadEvent::Succeeded { destination: destination.to_owned(), bytes }
     }
 
     fn download_failed(&self, destination: &Path, message: String) -> Self::Event {
-        DownloadEvent::Failed {
-            destination: destination.to_owned(),
-            message,
-        }
+        DownloadEvent::Failed { destination: destination.to_owned(), message }
     }
 }
 
@@ -334,11 +288,7 @@ impl FormatPredicateMatchAlg for MediaSyntax {
 }
 
 impl FormatSelectionApplyAlg for MediaSyntax {
-    fn select_formats<'a>(
-        &self,
-        formats: &'a [Format],
-        selection: &FormatSelection,
-    ) -> Option<Vec<&'a Format>> {
+    fn select_formats<'a>(&self, formats: &'a [Format], selection: &FormatSelection) -> Option<Vec<&'a Format>> {
         interpret_selection(self, formats, selection)
     }
 }

@@ -4,9 +4,7 @@ use crate::screen::{RatatuiScreen, paint};
 use crate::transfers::Transfers;
 use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind, KeyModifiers};
 use crossterm::execute;
-use crossterm::terminal::{
-    EnterAlternateScreen, LeaveAlternateScreen, disable_raw_mode, enable_raw_mode,
-};
+use crossterm::terminal::{EnterAlternateScreen, LeaveAlternateScreen, disable_raw_mode, enable_raw_mode};
 use ratatui::Terminal;
 use ratatui::backend::CrosstermBackend;
 use rsynko_manager::*;
@@ -64,10 +62,7 @@ impl Drop for TerminalSession {
 ///
 /// States nothing where the terminal cannot be taken over, and where painting or reading it fails
 /// while it is held.
-pub fn run(
-    application: Application<'_>,
-    requests: Vec<SourceRequest>,
-) -> Result<(), Box<dyn Error>> {
+pub fn run(application: Application<'_>, requests: Vec<SourceRequest>) -> Result<(), Box<dyn Error>> {
     let mut manager = ManagerState::downloads();
     manager.apply_manager_event(ManagerIntentOp::AddSources { requests });
 
@@ -112,9 +107,7 @@ fn run_manager(
                 return Ok(());
             }
         }
-        terminal
-            .draw(|frame| draw(frame, application, manager))
-            .map_err(|error| error.to_string())?;
+        terminal.draw(|frame| draw(frame, application, manager)).map_err(|error| error.to_string())?;
         if event::poll(FRAME_INTERVAL).map_err(|error| error.to_string())? {
             match event::read().map_err(|error| error.to_string())? {
                 Event::Key(key) if key.kind == KeyEventKind::Press => match interruption(key) {
@@ -166,11 +159,7 @@ fn interrupted_twice(previous: Option<Instant>, now: Instant) -> bool {
 
 /// Reads one key press as the interruption it is.
 fn interruption(key: KeyEvent) -> Interruption {
-    if keystroke(key) == Some(GUARD_KEYSTROKE) {
-        Interruption::Guarded
-    } else {
-        Interruption::Ordinary
-    }
+    if keystroke(key) == Some(GUARD_KEYSTROKE) { Interruption::Guarded } else { Interruption::Ordinary }
 }
 
 /// Applies what one reported key press denotes, when the terminal reports a key the manager names.
@@ -211,14 +200,9 @@ fn keystroke(event: KeyEvent) -> Option<Keystroke> {
 #[cfg(test)]
 mod tests {
     /// Names the application these tests state screens for.
-    const TESTING: Application<'static> = Application {
-        name: "rsynko",
-        version: "0.0.0",
-    };
+    const TESTING: Application<'static> = Application { name: "rsynko", version: "0.0.0" };
 
-    use super::{
-        GUARD_KEYSTROKE, Interruption, draw, handle_key, interrupted_twice, interruption, keystroke,
-    };
+    use super::{GUARD_KEYSTROKE, Interruption, draw, handle_key, interrupted_twice, interruption, keystroke};
     use crate::downloads::Downloads;
     use crate::transfers::Transfers;
     use alux_sdk::IterTraversableExt;
@@ -228,8 +212,7 @@ mod tests {
     use rsynko_manager::*;
     use rsynko_media::*;
     use rsynko_memory::{
-        ChangeKind, DownloadOptions, Format, InfoValue, ManagerState, MediaSyntax, MemoryManager,
-        SourceRequest,
+        ChangeKind, DownloadOptions, Format, InfoValue, ManagerState, MediaSyntax, MemoryManager, SourceRequest,
     };
     use rsynko_reqwest::FIXTURE_BYTES;
     use rsynko_session::SessionExt;
@@ -240,28 +223,13 @@ mod tests {
 
     /// Reads the whole terminal back as the characters it is showing.
     fn rendered(terminal: &Terminal<TestBackend>) -> String {
-        terminal
-            .backend()
-            .buffer()
-            .content()
-            .iter()
-            .map(ratatui::buffer::Cell::symbol)
-            .collect()
+        terminal.backend().buffer().content().iter().map(ratatui::buffer::Cell::symbol).collect()
     }
 
     /// Describes one selectable format through the observations a renderer reads.
-    fn described_format<'a>(
-        id: &str,
-        observations: impl IntoIterator<Item = (&'a str, InfoValue)>,
-    ) -> Format {
-        MediaSyntax.format(
-            id,
-            MediaSyntax.metadata(
-                observations
-                    .into_iter()
-                    .map(|(key, value)| (key.to_owned(), value)),
-            ),
-        )
+    fn described_format<'a>(id: &str, observations: impl IntoIterator<Item = (&'a str, InfoValue)>) -> Format {
+        MediaSyntax
+            .format(id, MediaSyntax.metadata(observations.into_iter().map(|(key, value)| (key.to_owned(), value))))
     }
 
     #[test]
@@ -271,15 +239,9 @@ mod tests {
         // Nobody interrupted before this one.
         assert!(!interrupted_twice(None, first));
         // Twice together is a reader saying it twice.
-        assert!(interrupted_twice(
-            Some(first),
-            first + Duration::from_millis(120)
-        ));
+        assert!(interrupted_twice(Some(first), first + Duration::from_millis(120)));
         // Twice apart is two accidents.
-        assert!(!interrupted_twice(
-            Some(first),
-            first + Duration::from_millis(900)
-        ));
+        assert!(!interrupted_twice(Some(first), first + Duration::from_millis(900)));
     }
 
     #[test]
@@ -297,42 +259,21 @@ mod tests {
     #[test]
     fn reported_key_presses_decode_to_the_keystrokes_the_manager_binds() {
         let reported = |code, modifiers| keystroke(KeyEvent::new(code, modifiers));
-        assert_eq!(
-            reported(KeyCode::Up, KeyModifiers::NONE),
-            Some(Keystroke::plain(Key::Up))
-        );
-        assert_eq!(
-            reported(KeyCode::Enter, KeyModifiers::NONE),
-            Some(Keystroke::plain(Key::Enter))
-        );
-        assert_eq!(
-            reported(KeyCode::Char(' '), KeyModifiers::NONE),
-            Some(Keystroke::plain(Key::Character(' ')))
-        );
-        assert_eq!(
-            reported(KeyCode::Char('q'), KeyModifiers::CONTROL),
-            Some(EXIT_KEYSTROKE)
-        );
-        assert_eq!(
-            reported(KeyCode::Char('c'), KeyModifiers::CONTROL),
-            Some(GUARD_KEYSTROKE)
-        );
+        assert_eq!(reported(KeyCode::Up, KeyModifiers::NONE), Some(Keystroke::plain(Key::Up)));
+        assert_eq!(reported(KeyCode::Enter, KeyModifiers::NONE), Some(Keystroke::plain(Key::Enter)));
+        assert_eq!(reported(KeyCode::Char(' '), KeyModifiers::NONE), Some(Keystroke::plain(Key::Character(' '))));
+        assert_eq!(reported(KeyCode::Char('q'), KeyModifiers::CONTROL), Some(EXIT_KEYSTROKE));
+        assert_eq!(reported(KeyCode::Char('c'), KeyModifiers::CONTROL), Some(GUARD_KEYSTROKE));
         // A key the vocabulary does not name is not decoded into one that happens to be near it.
         assert_eq!(reported(KeyCode::F(1), KeyModifiers::NONE), None);
 
         let mut manager = ManagerState::downloads();
-        handle_key(
-            &mut manager,
-            KeyEvent::new(KeyCode::Char('q'), KeyModifiers::CONTROL),
-        );
+        handle_key(&mut manager, KeyEvent::new(KeyCode::Char('q'), KeyModifiers::CONTROL));
         assert!(manager.exit_requested());
 
         // The interruption is this interpreter's own question, so the manager hears nothing of it.
         let mut undisturbed = ManagerState::downloads();
-        handle_key(
-            &mut undisturbed,
-            KeyEvent::new(KeyCode::Char('c'), KeyModifiers::CONTROL),
-        );
+        handle_key(&mut undisturbed, KeyEvent::new(KeyCode::Char('c'), KeyModifiers::CONTROL));
         assert!(!undisturbed.exit_requested());
     }
 
@@ -342,11 +283,7 @@ mod tests {
         let mut terminal = Terminal::new(backend).expect("test terminal");
         let mut manager = ManagerState::downloads();
         manager.apply_manager_event(ManagerIntentOp::AddSources {
-            requests: vec![SourceRequest::new(
-                "fixture://single-video",
-                None,
-                DownloadOptions::progressive(),
-            )],
+            requests: vec![SourceRequest::new("fixture://single-video", None, DownloadOptions::progressive())],
         });
         let selected = manager.selected_id().expect("selected fixture");
         manager.apply_manager_event(ManagerIntentOp::Transfer {
@@ -359,22 +296,16 @@ mod tests {
         });
         manager.apply_manager_event(ManagerIntentOp::Transfer {
             id: selected,
-            event: TransferObservationOp::Elapsed {
-                elapsed: Duration::from_secs(2),
-            },
+            event: TransferObservationOp::Elapsed { elapsed: Duration::from_secs(2) },
         });
         manager.apply_manager_event(ManagerIntentOp::SourceMetadata {
             id: selected,
             media_id: "single-video".to_owned(),
             title: Some("Fetched video title".to_owned()),
         });
-        terminal
-            .draw(|frame| draw(frame, TESTING, &manager))
-            .expect("render collection");
+        terminal.draw(|frame| draw(frame, TESTING, &manager)).expect("render collection");
         manager.apply_manager_event(ManagerIntentOp::OpenSelected {});
-        terminal
-            .draw(|frame| draw(frame, TESTING, &manager))
-            .expect("render details");
+        terminal.draw(|frame| draw(frame, TESTING, &manager)).expect("render details");
 
         let shown = rendered(&terminal);
         assert!(shown.contains(COLLECTION));
@@ -401,11 +332,7 @@ mod tests {
         let mut terminal = Terminal::new(backend).expect("test terminal");
         let mut manager = ManagerState::downloads();
         manager.apply_manager_event(ManagerIntentOp::AddSources {
-            requests: vec![SourceRequest::new(
-                "fixture://single-video",
-                None,
-                DownloadOptions::progressive(),
-            )],
+            requests: vec![SourceRequest::new("fixture://single-video", None, DownloadOptions::progressive())],
         });
         let selected = manager.selected_id().expect("selected format fixture");
         manager.apply_manager_event(ManagerIntentOp::FormatCatalog {
@@ -426,9 +353,7 @@ mod tests {
         });
         manager.apply_manager_event(ManagerIntentOp::OpenSelected {});
         manager.apply_manager_event(ManagerIntentOp::OpenFormats {});
-        terminal
-            .draw(|frame| draw(frame, TESTING, &manager))
-            .expect("render formats");
+        terminal.draw(|frame| draw(frame, TESTING, &manager)).expect("render formats");
         let offered = rendered(&terminal);
         // One chooser states the preferred roles first and every discovered format after, and
         // offers only the roles something described carries: this source states one audio-only
@@ -440,37 +365,24 @@ mod tests {
         assert!(offered.contains(label), "{offered}");
 
         // Choosing it and going back states the same columns, painted by the same words.
-        while manager
-            .selected()
-            .and_then(RequestOptionsAlg::chosen_choice)
-            != Some("140")
-        {
+        while manager.selected().and_then(RequestOptionsAlg::chosen_choice) != Some("140") {
             manager.apply_manager_event(ManagerIntentOp::SelectNextFormat {});
         }
         manager.apply_manager_event(ManagerIntentOp::Back {});
-        terminal
-            .draw(|frame| draw(frame, TESTING, &manager))
-            .expect("render details");
+        terminal.draw(|frame| draw(frame, TESTING, &manager)).expect("render details");
         assert!(rendered(&terminal).contains(label));
     }
 
     #[test]
     fn distinct_fixture_outputs_run_as_independent_downloads() {
         let directory = tempfile::tempdir().expect("temporary directory");
-        let outputs = [
-            directory.path().join("one.mp4"),
-            directory.path().join("two.mp4"),
-        ];
+        let outputs = [directory.path().join("one.mp4"), directory.path().join("two.mp4")];
         let mut manager = ManagerState::downloads();
         manager.apply_manager_event(ManagerIntentOp::AddSources {
             requests: outputs
                 .iter()
                 .map(|output| {
-                    SourceRequest::new(
-                        "fixture://single-video",
-                        Some(output.clone()),
-                        DownloadOptions::progressive(),
-                    )
+                    SourceRequest::new("fixture://single-video", Some(output.clone()), DownloadOptions::progressive())
                 })
                 .collect(),
         });
@@ -490,22 +402,10 @@ mod tests {
         }
 
         assert!(running.is_empty());
-        assert!(
-            manager
-                .queue()
-                .iter()
-                .all(|entry| entry.transfer().phase() == TransferPhase::Complete)
-        );
-        let contents = outputs
-            .iter()
-            .traverse(std::fs::read)
-            .expect("fixture outputs");
+        assert!(manager.queue().iter().all(|entry| entry.transfer().phase() == TransferPhase::Complete));
+        let contents = outputs.iter().traverse(std::fs::read).expect("fixture outputs");
         assert!(contents.iter().all(|bytes| bytes == FIXTURE_BYTES));
-        assert!(
-            outputs
-                .iter()
-                .all(|output| !PathBuf::from(format!("{}.part", output.display())).exists())
-        );
+        assert!(outputs.iter().all(|output| !PathBuf::from(format!("{}.part", output.display())).exists()));
     }
 
     /// Observes whether the machine running the test has the transfer program.
@@ -533,11 +433,7 @@ mod tests {
 
         let mut manager = ManagerState::downloads();
         manager.apply_manager_event(ManagerIntentOp::AddSources {
-            requests: vec![MemoryManager.submitted(&format!(
-                "{}/ {}",
-                source.display(),
-                destination.display()
-            ))],
+            requests: vec![MemoryManager.submitted(&format!("{}/ {}", source.display(), destination.display()))],
         });
         let id = manager.selected_id().expect("the submitted transfer");
         // Mirroring is what removes, so the way of transferring is walked onto it.
@@ -545,10 +441,7 @@ mod tests {
         manager.apply_manager_event(ManagerIntentOp::OpenFormats {});
         manager.apply_manager_event(ManagerIntentOp::SelectNextFormat {});
         manager.apply_manager_event(ManagerIntentOp::Back {});
-        assert_eq!(
-            manager.entry(id).and_then(RequestOptionsAlg::chosen_choice),
-            Some("mirror")
-        );
+        assert_eq!(manager.entry(id).and_then(RequestOptionsAlg::chosen_choice), Some("mirror"));
         manager.apply_manager_event(ManagerIntentOp::ApplySelectedSpace {});
 
         let mut running = Vec::new();
@@ -567,12 +460,7 @@ mod tests {
             .filter(|change| change.change_kind() == ChangeKind::Delete)
             .map(|change| change.change_path().to_owned())
             .collect::<Vec<_>>();
-        assert_eq!(
-            removed,
-            vec!["extra.txt".to_owned()],
-            "{:?}",
-            entry.rehearsal()
-        );
+        assert_eq!(removed, vec!["extra.txt".to_owned()], "{:?}", entry.rehearsal());
         // Nothing was moved: a rehearsal states what it would do.
         assert!(destination.join("extra.txt").exists());
         assert!(!destination.join("kept.txt").exists());

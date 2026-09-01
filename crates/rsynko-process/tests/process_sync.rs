@@ -12,10 +12,7 @@ use std::sync::mpsc::channel;
 
 /// States one program the interpreter runs in place of a transfer.
 fn stated(script: &str) -> SyncCommand {
-    SyncCommand {
-        program: "/bin/sh".to_owned(),
-        arguments: vec!["-c".to_owned(), script.to_owned()],
-    }
+    SyncCommand { program: "/bin/sh".to_owned(), arguments: vec!["-c".to_owned(), script.to_owned()] }
 }
 
 #[test]
@@ -23,21 +20,13 @@ fn progress_and_changes_arrive_however_the_program_ends_its_lines() {
     let (sender, watched) = channel();
     let environment = ProcessSyncEnv::new(sender);
     // Progress is written over itself with carriage returns; itemized paths end with newlines.
-    let command = stated(
-        r"printf '>f+++++++++|4|new.txt\n    19,084,083  28%%   2.02MB/s\r*deleting  |0|gone.txt\n'",
-    );
+    let command = stated(r"printf '>f+++++++++|4|new.txt\n    19,084,083  28%%   2.02MB/s\r*deleting  |0|gone.txt\n'");
 
     let changes = environment.run_sync(&command).expect("stated program runs");
 
     let named = changes
         .iter()
-        .map(|change| {
-            (
-                change.change_path(),
-                change.change_kind(),
-                change.change_size(),
-            )
-        })
+        .map(|change| (change.change_path(), change.change_kind(), change.change_size()))
         .collect::<Vec<_>>();
     assert_eq!(
         named,
@@ -48,13 +37,12 @@ fn progress_and_changes_arrive_however_the_program_ends_its_lines() {
         ]
     );
     let observed = watched.try_iter().collect::<Vec<_>>();
-    assert!(observed.iter().any(|observation| matches!(
-        observation,
-        SyncObservation::Progress {
-            transferred: 19_084_083,
-            percent: 28
-        }
-    )));
+    assert!(
+        observed.iter().any(|observation| matches!(
+            observation,
+            SyncObservation::Progress { transferred: 19_084_083, percent: 28 }
+        ))
+    );
     assert_eq!(observed.len(), 3);
 }
 
@@ -64,9 +52,7 @@ fn a_program_that_refuses_states_why() {
     let environment = ProcessSyncEnv::new(sender);
     let command = stated("echo 'rsync: connection unexpectedly closed' >&2; exit 12");
 
-    let refusal = environment
-        .run_sync(&command)
-        .expect_err("the stated program refuses");
+    let refusal = environment.run_sync(&command).expect_err("the stated program refuses");
 
     match refusal {
         ProcessSyncError::Refused(reason) => {
@@ -80,14 +66,9 @@ fn a_program_that_refuses_states_why() {
 fn a_program_that_does_not_exist_is_not_a_refusal() {
     let (sender, _watched) = channel();
     let environment = ProcessSyncEnv::new(sender);
-    let command = SyncCommand {
-        program: "rsynko-no-such-program".to_owned(),
-        arguments: Vec::new(),
-    };
+    let command = SyncCommand { program: "rsynko-no-such-program".to_owned(), arguments: Vec::new() };
 
-    let refusal = environment
-        .run_sync(&command)
-        .expect_err("an absent program cannot run");
+    let refusal = environment.run_sync(&command).expect_err("an absent program cannot run");
 
     assert!(matches!(refusal, ProcessSyncError::Unstartable(_)));
 }

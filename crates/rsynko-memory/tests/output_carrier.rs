@@ -29,8 +29,5 @@ impl OutputNameAlg for LengthSyntax {
 fn normalization_is_independent_of_the_output_carrier() {
     let path = MediaSyntax.portable_output_name(Some("A/B"), "id", Some("mp4"));
     assert_eq!(path, PathBuf::from("A_B.mp4"));
-    assert_eq!(
-        LengthSyntax.portable_output_name(Some("A/B"), "id", Some("mp4")),
-        7
-    );
+    assert_eq!(LengthSyntax.portable_output_name(Some("A/B"), "id", Some("mp4")), 7);
 }

@@ -30,12 +30,7 @@ pub trait DownloadObservationAlg {
     type Progress;
 
     /// Defines a byte-progress observation.
-    fn download_progress(
-        &self,
-        destination: &Path,
-        downloaded: u64,
-        total: Option<u64>,
-    ) -> Self::Progress;
+    fn download_progress(&self, destination: &Path, downloaded: u64, total: Option<u64>) -> Self::Progress;
     /// Defines terminal success.
     fn download_succeeded(&self, destination: &Path, bytes: u64) -> Self::Event;
     /// Defines terminal failure.

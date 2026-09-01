@@ -49,12 +49,8 @@ fn transfer(request: SourceRequest) -> Result<(), Box<dyn Error>> {
     // The command is the one the request states, and it is derived exactly once, so what a
     // reader is shown anywhere is what runs everywhere.
     let mut manager = ManagerState::downloads();
-    manager.apply_manager_event(ManagerIntentOp::AddSources {
-        requests: vec![request],
-    });
-    let id = manager
-        .selected_id()
-        .ok_or("the submitted transfer was not collected")?;
+    manager.apply_manager_event(ManagerIntentOp::AddSources { requests: vec![request] });
+    let id = manager.selected_id().ok_or("the submitted transfer was not collected")?;
     manager.set_queue_dry_run(id, false);
     let command = manager
         .entry(id)
@@ -73,16 +69,14 @@ fn retrieve(source: &str, target: &OutputTarget) -> Result<(), Box<dyn Error>> {
     let environment = RuntimeEnvironment::build()?;
     let selection = progressive_selection();
     let result = if youtube_id(source).is_some() {
-        environment
-            .download_youtube(source, &selection, target)
-            .map_err(|error| error.to_string())
+        environment.download_youtube(source, &selection, target).map_err(|error| error.to_string())
     } else {
         match environment.download_url(source, &selection, target) {
             // A source may carry nothing that plays: a tweet of photographs states no streams at
             // all, and the best of what it does state is what was asked for.
-            Err(ApplicationError::Media(MediaDownloadError::NoMatchingFormat)) => environment
-                .download_url(source, &any_selection(), target)
-                .map_err(|error| error.to_string()),
+            Err(ApplicationError::Media(MediaDownloadError::NoMatchingFormat)) => {
+                environment.download_url(source, &any_selection(), target).map_err(|error| error.to_string())
+            }
             stated => stated.map_err(|error| error.to_string()),
         }
     };
@@ -107,15 +101,9 @@ fn render_change(change: &PlannedChange) {
 pub(crate) fn render_terminal_event(event: &DownloadEvent) {
     match event {
         DownloadEvent::Succeeded { destination, bytes } => {
-            println!(
-                "download succeeded: {} ({bytes} bytes)",
-                destination.display()
-            );
+            println!("download succeeded: {} ({bytes} bytes)", destination.display());
         }
-        DownloadEvent::Failed {
-            destination,
-            message,
-        } => {
+        DownloadEvent::Failed { destination, message } => {
             eprintln!("download failed: {}: {message}", destination.display());
         }
     }

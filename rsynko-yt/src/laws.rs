@@ -86,10 +86,7 @@ where
         ChallengeError: Debug,
     {
         let formats = [
-            law_format(
-                "18",
-                YoutubeFormatSource::Direct("https://media.example/a.mp4".to_owned()),
-            ),
+            law_format("18", YoutubeFormatSource::Direct("https://media.example/a.mp4".to_owned())),
             law_format(
                 "137",
                 YoutubeFormatSource::Signed {
@@ -98,10 +95,7 @@ where
                     parameter: DEFAULT_SIGNATURE_PARAMETER.to_owned(),
                 },
             ),
-            law_format(
-                "22",
-                YoutubeFormatSource::Direct("https://media.example/c.mp4?n=posed".to_owned()),
-            ),
+            law_format("22", YoutubeFormatSource::Direct("https://media.example/c.mp4?n=posed".to_owned())),
         ];
         let formats = &formats;
         let grants = match self.grant_formats(law_program(), formats) {
@@ -109,18 +103,11 @@ where
             Err(error) => bail!("challenge resolution failed: {error:?}"),
         };
         if grants.len() != formats.len() {
-            bail!(
-                "granting yielded {} outcomes for {} formats",
-                grants.len(),
-                formats.len()
-            );
+            bail!("granting yielded {} outcomes for {} formats", grants.len(), formats.len());
         }
         for (format, grant) in formats.iter().zip(&grants) {
             if grant.id() != format.id {
-                bail!(
-                    "granting did not preserve declaration order at {}",
-                    grant.id()
-                );
+                bail!("granting did not preserve declaration order at {}", grant.id());
             }
             let guarded = format.source.signature_challenge().is_some();
             let throttled = self.throttle_challenge(format.source.url()).is_some();
@@ -135,9 +122,7 @@ where
                 }
                 YoutubeGrant::Throttled { challenge, .. } => {
                     if !throttled {
-                        bail!(
-                            "a source posing no throttling parameter was throttled: {challenge:?}"
-                        );
+                        bail!("a source posing no throttling parameter was throttled: {challenge:?}");
                     }
                     if guarded {
                         bail!("a signature guarding the representation was answered by throttling");
@@ -150,10 +135,7 @@ where
                 }
             }
             if grant.retrievable().is_none() && !guarded {
-                bail!(
-                    "an unresolved throttling parameter denied retrieval of {}",
-                    grant.id()
-                );
+                bail!("an unresolved throttling parameter denied retrieval of {}", grant.id());
             }
         }
         Ok(())
@@ -164,10 +146,7 @@ where
 #[ext(name = YoutubeSolutionLaws)]
 pub impl<This, ChallengeError> This
 where
-    This: YoutubeChallengeAlg<Error = ChallengeError>
-        + YoutubeSolutionAlg
-        + YoutubeUrlAlg
-        + YoutubeChallengeLawFixture,
+    This: YoutubeChallengeAlg<Error = ChallengeError> + YoutubeSolutionAlg + YoutubeUrlAlg + YoutubeChallengeLawFixture,
 {
     /// Checks that a resolved challenge answers exactly its own guard, once per granting.
     ///
@@ -211,14 +190,12 @@ where
 
         match &grants[0] {
             YoutubeGrant::Granted { url, .. }
-                if *url
-                    == self.with_signature(signed_url, DEFAULT_SIGNATURE_PARAMETER, "solved") => {}
+                if *url == self.with_signature(signed_url, DEFAULT_SIGNATURE_PARAMETER, "solved") => {}
             other => bail!("a solved signature was not attached under its parameter: {other:?}"),
         }
         for grant in &grants[1..] {
             match grant {
-                YoutubeGrant::Granted { url, .. }
-                    if self.throttle_challenge(url).as_deref() == Some("answered") => {}
+                YoutubeGrant::Granted { url, .. } if self.throttle_challenge(url).as_deref() == Some("answered") => {}
                 other => {
                     bail!("a solved throttling parameter did not replace the posed one: {other:?}")
                 }
@@ -227,18 +204,10 @@ where
 
         let applications = self.law_challenge_applications();
         if applications.len() != before + 1 {
-            bail!(
-                "granting resolved in {} applications rather than one",
-                applications.len() - before
-            );
+            bail!("granting resolved in {} applications rather than one", applications.len() - before);
         }
         let posed = &applications[before];
-        if posed
-            .iter()
-            .filter(|challenge| **challenge == YoutubeChallenge::Throttle("posed".to_owned()))
-            .count()
-            != 1
-        {
+        if posed.iter().filter(|challenge| **challenge == YoutubeChallenge::Throttle("posed".to_owned())).count() != 1 {
             bail!("a challenge two formats share was not posed exactly once: {posed:?}");
         }
         Ok(())
@@ -271,11 +240,8 @@ where
         if self.watch_request(url) == self.media_request(url) {
             bail!("retrieving a watch page denotes the same request as retrieving media");
         }
-        let claim = PlayerClaim {
-            client: "CLIENT".to_owned(),
-            visitor: Some("session".to_owned()),
-            timestamp: Some(19_000),
-        };
+        let claim =
+            PlayerClaim { client: "CLIENT".to_owned(), visitor: Some("session".to_owned()), timestamp: Some(19_000) };
         let player = self.player_request("abc123", "key", &claim);
         if player != self.player_request("abc123", "key", &claim) {
             bail!("a player request is not a function of the values naming it");
@@ -289,10 +255,7 @@ where
         if player == self.player_request("abc123", "key", &PlayerClaim::default()) {
             bail!("a player request does not depend on what the client claims about itself");
         }
-        let other = PlayerClaim {
-            client: "OTHER".to_owned(),
-            ..claim.clone()
-        };
+        let other = PlayerClaim { client: "OTHER".to_owned(), ..claim.clone() };
         if player == self.player_request("abc123", "key", &other) {
             bail!("a player request does not depend on which client makes the claim");
         }
@@ -421,16 +384,10 @@ where
         let executed = self.law_executed_requests();
         let performed = &executed[before.len()..];
         if performed.len() < 2 {
-            bail!(
-                "extraction executed {} requests rather than several",
-                performed.len()
-            );
+            bail!("extraction executed {} requests rather than several", performed.len());
         }
         if performed[0] != self.watch_request(&watch_url) {
-            bail!(
-                "extraction did not begin with the watch request: {:?}",
-                performed[0]
-            );
+            bail!("extraction did not begin with the watch request: {:?}", performed[0]);
         }
         if performed[1..].contains(&performed[0]) {
             bail!("extraction executed the watch request more than once");
@@ -440,10 +397,7 @@ where
             bail!("extracting one video did not denote one media item");
         };
         if self.media_id(&media) != id {
-            bail!(
-                "the extracted media carries {} rather than {id}",
-                self.media_id(&media)
-            );
+            bail!("the extracted media carries {} rather than {id}", self.media_id(&media));
         }
         if self.media_formats(&media).is_empty() {
             bail!("the extracted media carries no format");
@@ -498,25 +452,17 @@ where
     fn youtube_application_laws(&mut self) -> Result<()> {
         let watch_url = self.law_watch_url();
         let selection = self.best_format(self.any_format());
-        let published = match self.download_youtube(&watch_url, &selection, &OutputTarget::MediaId)
-        {
+        let published = match self.download_youtube(&watch_url, &selection, &OutputTarget::MediaId) {
             Ok(published) => published,
             Err(error) => bail!("the Youtube download failed: {error}"),
         };
         let expected = PathBuf::from(format!("{}.{}", self.law_video_id(), self.law_extension()));
         if published != expected {
-            bail!(
-                "naming derived {} rather than {}",
-                published.display(),
-                expected.display()
-            );
+            bail!("naming derived {} rather than {}", published.display(), expected.display());
         }
         let retrieved = self.law_retrieved_requests();
         if retrieved.len() != 1 {
-            bail!(
-                "retrieval opened {} requests rather than one",
-                retrieved.len()
-            );
+            bail!("retrieval opened {} requests rather than one", retrieved.len());
         }
         if retrieved[0] == self.watch_request(&watch_url) {
             bail!("retrieval reused the watch request rather than the media request");

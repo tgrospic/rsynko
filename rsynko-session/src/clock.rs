@@ -35,12 +35,6 @@ pub struct Attending<Id, Run, Moment> {
 impl<Id, Run, Moment> Attending<Id, Run, Moment> {
     /// Denotes one run that has just begun, and has not been held still yet.
     pub const fn begun(id: Id, run: Run, began: Moment) -> Self {
-        Self {
-            id,
-            run,
-            began,
-            held_since: None,
-            held_for: Duration::ZERO,
-        }
+        Self { id, run, began, held_since: None, held_for: Duration::ZERO }
     }
 }

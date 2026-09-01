@@ -15,10 +15,7 @@ fn squeezed(line: &str) -> String {
 }
 
 /// Names the application a presentation scenario states its screens for.
-const LAW_APPLICATION: Application<'static> = Application {
-    name: "law",
-    version: "0.0.0",
-};
+const LAW_APPLICATION: Application<'static> = Application { name: "law", version: "0.0.0" };
 
 /// Supplies the renderer a presentation scenario cannot author for itself.
 pub trait ScreenLawFixture {
@@ -188,12 +185,9 @@ where
                     bail!("a menu entry disagrees with what its action means: {label}");
                 }
                 for key in &item.keys {
-                    let bound = self
-                        .keystroke_meaning(*key)
-                        .and_then(|binding| binding.action);
-                    let cursor =
-                        matches!(bound, Some(ManagerAction::Previous | ManagerAction::Next))
-                            && item.action == ManagerAction::Next;
+                    let bound = self.keystroke_meaning(*key).and_then(|binding| binding.action);
+                    let cursor = matches!(bound, Some(ManagerAction::Previous | ManagerAction::Next))
+                        && item.action == ManagerAction::Next;
                     if bound != Some(item.action) && !cursor {
                         bail!("the menu states {key:?} for {label}, which denotes {bound:?}");
                     }
@@ -235,10 +229,7 @@ pub impl<This> This {
             }
             previous = eighths;
             if gauge.text().chars().count() != GAUGE_WIDTH {
-                bail!(
-                    "a gauge of {percent}% states {} cells of text",
-                    gauge.text()
-                );
+                bail!("a gauge of {percent}% states {} cells of text", gauge.text());
             }
         }
         let empty = Gauge::of(0, GAUGE_WIDTH);
@@ -301,11 +292,7 @@ where
     fn screen_laws(&mut self) -> Result<()> {
         self.set_page(ManagerPage::Collection);
         let empty = self.law_screen_lines();
-        let add = self
-            .action_keys(ManagerAction::AddSources)
-            .next()
-            .map(Keystroke::label)
-            .unwrap_or_default();
+        let add = self.action_keys(ManagerAction::AddSources).next().map(Keystroke::label).unwrap_or_default();
         if !empty.iter().any(|line| line.contains(&format!("[{add}]"))) {
             bail!("an empty collection does not name the key that fills it");
         }
@@ -326,19 +313,13 @@ where
             }
             for item in self.menu_items() {
                 if !lines.iter().any(|line| line.contains(&item.label())) {
-                    bail!(
-                        "a page does not state the menu entry it offers: {}",
-                        item.label()
-                    );
+                    bail!("a page does not state the menu entry it offers: {}", item.label());
                 }
             }
         }
         self.set_page(ManagerPage::Details(ids[0]));
         let details = self.law_screen_lines();
-        let controls = self
-            .queue_entry(ids[0])
-            .map(QueueEntryAlg::detail_controls)
-            .unwrap_or_default();
+        let controls = self.queue_entry(ids[0]).map(QueueEntryAlg::detail_controls).unwrap_or_default();
         for control in controls {
             let label = control.control_label();
             let stated = details.iter().filter(|line| line.contains(label)).count();
@@ -387,19 +368,11 @@ where
             squeezed(&format!("{chosen} {summary}"))
         };
         self.set_page(ManagerPage::Formats(id));
-        if !self
-            .law_screen_lines()
-            .iter()
-            .any(|line| squeezed(line).contains(&phrase))
-        {
+        if !self.law_screen_lines().iter().any(|line| squeezed(line).contains(&phrase)) {
             bail!("a chooser does not state the choice the request fixed: {phrase}");
         }
         self.set_page(ManagerPage::Details(id));
-        if !self
-            .law_screen_lines()
-            .iter()
-            .any(|line| squeezed(line).ends_with(&phrase))
-        {
+        if !self.law_screen_lines().iter().any(|line| squeezed(line).ends_with(&phrase)) {
             bail!("details state the fixed choice in other words than the chooser does: {phrase}");
         }
         Ok(())
@@ -413,19 +386,11 @@ where
     fn check_phase_laws(&mut self, running: This::Id, held: This::Id) -> Result<()> {
         self.apply_transfer_event(running, TransferObservationOp::Started {});
         self.apply_transfer_event(held, TransferObservationOp::Started {});
-        self.apply_transfer_event(
-            held,
-            TransferObservationOp::PauseCapability { supported: true },
-        );
+        self.apply_transfer_event(held, TransferObservationOp::PauseCapability { supported: true });
         self.toggle_queue_pause(held);
         self.set_page(ManagerPage::Collection);
         let lines = self.law_screen_lines();
-        let marked = |phase: TransferPhase| {
-            lines
-                .iter()
-                .filter(|line| line.contains(phase.phase_marker()))
-                .count()
-        };
+        let marked = |phase: TransferPhase| lines.iter().filter(|line| line.contains(phase.phase_marker())).count();
         if self.queue_entry(held).map(QueueEntryAlg::phase) != Some(TransferPhase::Paused) {
             bail!("a request told to wait was not held");
         }

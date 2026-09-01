@@ -76,11 +76,7 @@ where
         let refusing = self.law_unbeginnable();
         self.attend(&mut running);
         if running.len() != wanting.len() {
-            bail!(
-                "one pass began {} runs where {} requests wanted work",
-                running.len(),
-                wanting.len()
-            );
+            bail!("one pass began {} runs where {} requests wanted work", running.len(), wanting.len());
         }
         for id in &wanting {
             if begun_count(&self.law_told(id)) != 1 {
@@ -118,10 +114,7 @@ where
         }
 
         let told = self.law_told(&id);
-        let heard = told
-            .iter()
-            .filter(|telling| **telling == Telling::Heard)
-            .count();
+        let heard = told.iter().filter(|telling| **telling == Telling::Heard).count();
         if heard != said {
             bail!("a run stating {said} things was heard {heard} times");
         }
@@ -159,16 +152,10 @@ where
         // Told once for every pass it was still happening: a run that has not begun yet cannot
         // be told to stop, so telling it once would let it escape.
         if self.law_abandonments(&id) != passes - 1 {
-            bail!(
-                "a run nobody wanted was told to end {} times over {passes} passes",
-                self.law_abandonments(&id)
-            );
+            bail!("a run nobody wanted was told to end {} times over {passes} passes", self.law_abandonments(&id));
         }
-        let ended = self
-            .law_told(&id)
-            .iter()
-            .filter(|telling| matches!(telling, Telling::Ended | Telling::Refused))
-            .count();
+        let ended =
+            self.law_told(&id).iter().filter(|telling| matches!(telling, Telling::Ended | Telling::Refused)).count();
         if ended != 1 {
             bail!("a run nobody wanted stated how it ended {ended} times");
         }
@@ -225,9 +212,7 @@ pub enum Telling {
 
 /// Counts how many times one request was told its work began.
 fn begun_count(told: &[Telling]) -> usize {
-    told.iter()
-        .filter(|telling| **telling == Telling::Begun)
-        .count()
+    told.iter().filter(|telling| **telling == Telling::Begun).count()
 }
 
 /// Observes the last running time one request was told, when it was told one.

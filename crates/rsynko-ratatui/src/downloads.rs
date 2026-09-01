@@ -3,12 +3,10 @@ use ambassador::Delegate;
 use rsynko_manager::*;
 use rsynko_media::{ApplicationExt, OutputTarget};
 use rsynko_memory::{
-    DownloadEvent, DownloadObservationInterpreter, DownloadProgress, ManagerState, MediaSyntax,
-    QueueId,
+    DownloadEvent, DownloadObservationInterpreter, DownloadProgress, ManagerState, MediaSyntax, QueueId,
 };
 use rsynko_reqwest::{
-    RuntimeEnvironment, RuntimeObservation, RuntimeObservationReceiver, RuntimePause,
-    runtime_observation_channel,
+    RuntimeEnvironment, RuntimeObservation, RuntimeObservationReceiver, RuntimePause, runtime_observation_channel,
 };
 use rsynko_session::*;
 use rsynko_yt::{YoutubeApplicationExt, media_failure, youtube_id};
@@ -40,10 +38,7 @@ struct DownloadObservation<'a> {
 impl<'a> Downloads<'a> {
     /// Attends to the downloads this collection asks for.
     pub const fn attending(manager: &'a mut ManagerState) -> Self {
-        Self {
-            manager,
-            clock: Monotonic,
-        }
+        Self { manager, clock: Monotonic }
     }
 }
 
@@ -60,52 +55,31 @@ impl UndertakingAlg for Downloads<'_> {
         self.manager
             .wanting_work()
             .into_iter()
-            .filter(|id| {
-                self.manager
-                    .queue_entry(*id)
-                    .is_some_and(|entry| entry.performer() == Performer::Retrieval)
-            })
+            .filter(|id| self.manager.queue_entry(*id).is_some_and(|entry| entry.performer() == Performer::Retrieval))
             .collect()
     }
 
     fn begin(&self, id: &QueueId) -> Result<DownloadRun, String> {
-        let entry = self
-            .manager
-            .queue_entry(*id)
-            .ok_or_else(|| "the request is gone".to_owned())?;
-        let destination = entry
-            .output()
-            .ok_or_else(|| "the download names no output path".to_owned())?
-            .to_owned();
+        let entry = self.manager.queue_entry(*id).ok_or_else(|| "the request is gone".to_owned())?;
+        let destination = entry.output().ok_or_else(|| "the download names no output path".to_owned())?.to_owned();
         if self.manager.destination_is_taken(*id) {
-            return Err(format!(
-                "another request is already writing {}",
-                destination.display()
-            ));
+            return Err(format!("another request is already writing {}", destination.display()));
         }
         let source = entry.source().to_owned();
         let selection = MediaSyntax.request_selection(entry);
         let target = OutputTarget::Path(destination.clone());
         let (sender, observations) = runtime_observation_channel();
         let pause = RuntimePause::running();
-        let environment = RuntimeEnvironment::build_pausable(sender, pause.clone())
-            .map_err(|error| error.to_string())?;
+        let environment =
+            RuntimeEnvironment::build_pausable(sender, pause.clone()).map_err(|error| error.to_string())?;
         let worker = thread::spawn(move || {
             if youtube_id(&source).is_some() {
-                environment
-                    .download_youtube(&source, &selection, &target)
-                    .map_err(|error| error.to_string())
+                environment.download_youtube(&source, &selection, &target).map_err(|error| error.to_string())
             } else {
-                environment
-                    .download_url(&source, &selection, &target)
-                    .map_err(|error| error.to_string())
+                environment.download_url(&source, &selection, &target).map_err(|error| error.to_string())
             }
         });
-        Ok(DownloadRun {
-            worker,
-            observations,
-            pause,
-        })
+        Ok(DownloadRun { worker, observations, pause })
     }
 }
 
@@ -147,10 +121,7 @@ impl AttentionAlg for Downloads<'_> {
     }
 
     fn heard(&mut self, id: &QueueId, report: RuntimeObservation) {
-        report.interpret(&mut DownloadObservation {
-            manager: self.manager,
-            id: *id,
-        });
+        report.interpret(&mut DownloadObservation { manager: self.manager, id: *id });
     }
 
     fn ran_for(&mut self, id: &QueueId, elapsed: Duration) {
@@ -183,16 +154,8 @@ impl DownloadObservationInterpreter for DownloadObservation<'_> {
 
     fn terminal(&mut self, event: DownloadEvent) {
         let observed = match event {
-            DownloadEvent::Succeeded { destination, bytes } => {
-                TransferObservationOp::Completed { destination, bytes }
-            }
-            DownloadEvent::Failed {
-                destination,
-                message,
-            } => TransferObservationOp::Failed {
-                destination,
-                message,
-            },
+            DownloadEvent::Succeeded { destination, bytes } => TransferObservationOp::Completed { destination, bytes },
+            DownloadEvent::Failed { destination, message } => TransferObservationOp::Failed { destination, message },
         };
         self.manager.apply_transfer_event(self.id, observed);
     }

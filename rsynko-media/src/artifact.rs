@@ -5,12 +5,7 @@ use ambassador::delegatable_trait;
 #[delegatable_trait]
 pub trait ArtifactAlg: MediaSorts {
     /// Defines one artifact independently of collection storage.
-    fn artifact(
-        &self,
-        id: impl Into<String>,
-        kind: ArtifactKind,
-        metadata: Self::Metadata,
-    ) -> Self::Artifact;
+    fn artifact(&self, id: impl Into<String>, kind: ArtifactKind, metadata: Self::Metadata) -> Self::Artifact;
 }
 
 /// Classifies a produced artifact by its semantic role.

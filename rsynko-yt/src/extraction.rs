@@ -31,12 +31,8 @@ where
     ) -> Result<This::Extraction, YoutubeError<RequestError, ResponseError, ChallengeError>> {
         let id = youtube_id(url).ok_or_else(|| YoutubeError::Url(url.to_owned()))?;
         let watch_request = self.watch_request(url);
-        let page_bytes = self
-            .youtube_request_bytes(&watch_request)
-            .map_err(YoutubeError::Request)?;
-        let page = self
-            .decode_youtube_watch(&page_bytes)
-            .map_err(YoutubeError::Response)?;
+        let page_bytes = self.youtube_request_bytes(&watch_request).map_err(YoutubeError::Request)?;
+        let page = self.decode_youtube_watch(&page_bytes).map_err(YoutubeError::Response)?;
         if !page.has_player_response {
             return Err(YoutubeError::MissingPlayerResponse);
         }
@@ -46,20 +42,14 @@ where
         let program = match page.player_url {
             Some(url) => {
                 let request = self.player_program_request(url);
-                let bytes = self
-                    .youtube_request_bytes(&request)
-                    .map_err(YoutubeError::Request)?;
+                let bytes = self.youtube_request_bytes(&request).map_err(YoutubeError::Request)?;
                 String::from_utf8_lossy(&bytes).into_owned()
             }
             None => String::new(),
         };
         let player = self.granted_catalog(&id, &api_key, page.visitor_data.as_deref(), &program)?;
         if player.status.as_deref() != Some("OK") {
-            return Err(YoutubeError::Unavailable(
-                player
-                    .reason
-                    .unwrap_or_else(|| "video unavailable".to_owned()),
-            ));
+            return Err(YoutubeError::Unavailable(player.reason.unwrap_or_else(|| "video unavailable".to_owned())));
         }
         let unreadable = player.unreadable;
         let mut ranked = player.formats;
@@ -67,9 +57,7 @@ where
         if ranked.is_empty() {
             return Err(YoutubeError::NoDirectFormat);
         }
-        let grants = self
-            .grant_formats(&program, &ranked)
-            .map_err(YoutubeError::Challenge)?;
+        let grants = self.grant_formats(&program, &ranked).map_err(YoutubeError::Challenge)?;
         let mut formats = Vec::new();
         let mut withheld = None;
         let mut withheld_count = 0_usize;
@@ -87,36 +75,19 @@ where
                 }
                 YoutubeGrant::Withheld { challenge, .. } => {
                     withheld_count += 1;
-                    withheld = Some(
-                        withheld_reason(&challenge)
-                            .max(withheld.unwrap_or(WithheldReason::Throttle)),
-                    );
+                    withheld = Some(withheld_reason(&challenge).max(withheld.unwrap_or(WithheldReason::Throttle)));
                 }
             }
         }
         if formats.is_empty() {
-            return Err(YoutubeError::Withheld(
-                withheld.unwrap_or(WithheldReason::Throttle),
-            ));
+            return Err(YoutubeError::Withheld(withheld.unwrap_or(WithheldReason::Throttle)));
         }
         let title = player.title.or(page.title);
         let mut fields = vec![
-            (
-                YOUTUBE_DESCRIBED.to_owned(),
-                self.integer_metadata(i64::try_from(ranked.len()).unwrap_or(i64::MAX)),
-            ),
-            (
-                YOUTUBE_WITHHELD.to_owned(),
-                self.integer_metadata(i64::try_from(withheld_count).unwrap_or(i64::MAX)),
-            ),
-            (
-                YOUTUBE_THROTTLED.to_owned(),
-                self.integer_metadata(i64::try_from(throttled_count).unwrap_or(i64::MAX)),
-            ),
-            (
-                YOUTUBE_UNREADABLE.to_owned(),
-                self.integer_metadata(i64::try_from(unreadable).unwrap_or(i64::MAX)),
-            ),
+            (YOUTUBE_DESCRIBED.to_owned(), self.integer_metadata(i64::try_from(ranked.len()).unwrap_or(i64::MAX))),
+            (YOUTUBE_WITHHELD.to_owned(), self.integer_metadata(i64::try_from(withheld_count).unwrap_or(i64::MAX))),
+            (YOUTUBE_THROTTLED.to_owned(), self.integer_metadata(i64::try_from(throttled_count).unwrap_or(i64::MAX))),
+            (YOUTUBE_UNREADABLE.to_owned(), self.integer_metadata(i64::try_from(unreadable).unwrap_or(i64::MAX))),
         ];
         if let Some(title) = title {
             fields.push(("title".to_owned(), self.string_metadata(title)));
@@ -140,27 +111,14 @@ where
         visitor: Option<&str>,
         program: &str,
     ) -> Result<YoutubePlayer, YoutubeError<RequestError, ResponseError, ChallengeError>> {
-        let mut catalog = YoutubePlayer {
-            status: None,
-            reason: None,
-            title: None,
-            formats: Vec::new(),
-            unreadable: 0,
-        };
+        let mut catalog = YoutubePlayer { status: None, reason: None, title: None, formats: Vec::new(), unreadable: 0 };
         let clients: Vec<String> = self.player_clients().map(str::to_owned).collect();
         for client in clients {
-            let claim = PlayerClaim {
-                client,
-                visitor: visitor.map(str::to_owned),
-                timestamp: self.program_timestamp(program),
-            };
+            let claim =
+                PlayerClaim { client, visitor: visitor.map(str::to_owned), timestamp: self.program_timestamp(program) };
             let request = self.player_request(id, api_key, &claim);
-            let bytes = self
-                .youtube_request_bytes(&request)
-                .map_err(YoutubeError::Request)?;
-            let granted = self
-                .decode_youtube_player(&bytes)
-                .map_err(YoutubeError::Response)?;
+            let bytes = self.youtube_request_bytes(&request).map_err(YoutubeError::Request)?;
+            let granted = self.decode_youtube_player(&bytes).map_err(YoutubeError::Response)?;
             if granted.status.as_deref() != Some("OK") {
                 catalog.status = catalog.status.or(granted.status);
                 catalog.reason = catalog.reason.or(granted.reason);
@@ -183,14 +141,8 @@ where
     fn youtube_format(&self, format: YoutubeFormat, url: String) -> This::Format {
         let mut fields = vec![
             (FORMAT_SOURCE.to_owned(), self.string_metadata(url)),
-            (
-                FORMAT_HAS_AUDIO.to_owned(),
-                self.boolean_metadata(format.has_audio),
-            ),
-            (
-                FORMAT_HAS_VIDEO.to_owned(),
-                self.boolean_metadata(format.has_video),
-            ),
+            (FORMAT_HAS_AUDIO.to_owned(), self.boolean_metadata(format.has_audio)),
+            (FORMAT_HAS_VIDEO.to_owned(), self.boolean_metadata(format.has_video)),
         ];
         if let Some(value) = format.extension {
             fields.push((FORMAT_EXTENSION.to_owned(), self.string_metadata(value)));
@@ -304,9 +256,7 @@ where
             notes.push(format!("the player response described {described} formats"));
         }
         if let Some(unreadable) = counted(YOUTUBE_UNREADABLE).filter(|count| *count > 0) {
-            notes.push(format!(
-                "{unreadable} described formats state no location this interpreter can read"
-            ));
+            notes.push(format!("{unreadable} described formats state no location this interpreter can read"));
         }
         if let Some(withheld) = counted(YOUTUBE_WITHHELD) {
             notes.push(if withheld == 0 {
@@ -335,10 +285,9 @@ const FORBIDDEN: &str = "403 Forbidden";
 /// and the diagnostic follows for whoever goes looking.
 #[must_use]
 pub fn media_failure(detail: &str) -> String {
-    let stated = detail.find(SIGNED_URL_MARK).map_or_else(
-        || detail.to_owned(),
-        |index| format!("{}; signed media URL redacted", &detail[..index]),
-    );
+    let stated = detail
+        .find(SIGNED_URL_MARK)
+        .map_or_else(|| detail.to_owned(), |index| format!("{}; signed media URL redacted", &detail[..index]));
     if stated.contains(FORBIDDEN) {
         return format!("media request rejected: HTTP 403 Forbidden\n{stated}");
     }
@@ -348,21 +297,14 @@ pub fn media_failure(detail: &str) -> String {
 /// Observes the video identity denoted by a supported Youtube URL.
 #[must_use]
 pub fn youtube_id(input: &str) -> Option<String> {
-    let without_scheme = input
-        .strip_prefix("https://")
-        .or_else(|| input.strip_prefix("http://"))?;
-    let (authority, suffix) = without_scheme
-        .split_once('/')
-        .map_or((without_scheme, ""), |(authority, suffix)| {
-            (authority, suffix)
-        });
+    let without_scheme = input.strip_prefix("https://").or_else(|| input.strip_prefix("http://"))?;
+    let (authority, suffix) =
+        without_scheme.split_once('/').map_or((without_scheme, ""), |(authority, suffix)| (authority, suffix));
     let host = authority.split('@').next_back()?.split(':').next()?;
     match host {
-        "youtu.be" | "www.youtu.be" => suffix
-            .split(['?', '#', '/'])
-            .next()
-            .filter(|id| !id.is_empty())
-            .map(str::to_owned),
+        "youtu.be" | "www.youtu.be" => {
+            suffix.split(['?', '#', '/']).next().filter(|id| !id.is_empty()).map(str::to_owned)
+        }
         "youtube.com" | "www.youtube.com" | "m.youtube.com" => {
             if let Some(query) = suffix.strip_prefix("watch?") {
                 query.split('&').find_map(|pair| {
@@ -370,13 +312,7 @@ pub fn youtube_id(input: &str) -> Option<String> {
                     (key == "v" && !value.is_empty()).then(|| value.to_owned())
                 })
             } else {
-                suffix
-                    .split(['?', '#'])
-                    .next()?
-                    .split('/')
-                    .nth(1)
-                    .filter(|id| !id.is_empty())
-                    .map(str::to_owned)
+                suffix.split(['?', '#']).next()?.split('/').nth(1).filter(|id| !id.is_empty()).map(str::to_owned)
             }
         }
         _ => None,

@@ -78,23 +78,15 @@ where
         let Some((text, cursor)) = self.active_text_editor() else {
             return;
         };
-        let end = text[cursor..]
-            .find('\n')
-            .map_or(text.len(), |index| cursor + index);
+        let end = text[cursor..].find('\n').map_or(text.len(), |index| cursor + index);
         self.set_active_text_editor(text.to_owned(), end);
     }
 }
 
 fn previous_boundary(text: &str, cursor: usize) -> usize {
-    text[..cursor]
-        .char_indices()
-        .next_back()
-        .map_or(0, |(index, _)| index)
+    text[..cursor].char_indices().next_back().map_or(0, |(index, _)| index)
 }
 
 fn next_boundary(text: &str, cursor: usize) -> usize {
-    text[cursor..]
-        .chars()
-        .next()
-        .map_or(cursor, |character| cursor + character.len_utf8())
+    text[cursor..].chars().next().map_or(cursor, |character| cursor + character.len_utf8())
 }

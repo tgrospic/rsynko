@@ -9,10 +9,7 @@ use std::sync::mpsc::Sender;
 
 /// Runs folder transfers as operating-system processes.
 // Several capabilities delegate to the same component, which Clippy reads as a repeated attribute.
-#[allow(
-    clippy::duplicated_attributes,
-    reason = "one delegation per capability, not per target"
-)]
+#[allow(clippy::duplicated_attributes, reason = "one delegation per capability, not per target")]
 #[derive(Debug, Delegate)]
 #[delegate(RsyncEndpointAlg, target = "syntax")]
 #[delegate(RsyncEndpointViewAlg, target = "syntax")]
@@ -65,11 +62,7 @@ impl ProcessSyncEnv {
     /// Runs transfers that whoever holds this handle can hold still and let go again.
     #[must_use]
     pub const fn held(observations: Sender<SyncObservation>, hold: ProcessHold) -> Self {
-        Self {
-            syntax: RsyncSyntax,
-            observations,
-            hold,
-        }
+        Self { syntax: RsyncSyntax, observations, hold }
     }
 }
 
@@ -90,24 +83,16 @@ impl SyncRunAlg for ProcessSyncEnv {
         std::os::unix::process::CommandExt::process_group(&mut started, 0);
         let mut child = started.spawn().map_err(ProcessSyncError::Unstartable)?;
         self.hold.running(Some(child.id()));
-        let stdout = child
-            .stdout
-            .take()
-            .ok_or_else(|| ProcessSyncError::Refused("the transfer wrote nothing".to_owned()))?;
-        Ok(SyncRun {
-            child,
-            output: BufReader::new(stdout),
-        })
+        let stdout =
+            child.stdout.take().ok_or_else(|| ProcessSyncError::Refused("the transfer wrote nothing".to_owned()))?;
+        Ok(SyncRun { child, output: BufReader::new(stdout) })
     }
 
     fn next_sync_line(&self, run: &mut Self::Run) -> Result<Option<String>, Self::Error> {
         let mut line = Vec::new();
         let mut byte = [0_u8; 1];
         loop {
-            let read = run
-                .output
-                .read(&mut byte)
-                .map_err(ProcessSyncError::Unreadable)?;
+            let read = run.output.read(&mut byte).map_err(ProcessSyncError::Unreadable)?;
             if read == 0 {
                 break;
             }

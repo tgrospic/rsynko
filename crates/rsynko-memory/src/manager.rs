@@ -2,9 +2,7 @@ use crate::{DownloadEvent, DownloadOptions, Format, FormatCatalog, FormatChoice,
 use crate::{RsyncSyntax, SyncCommand};
 use rsynko_manager::*;
 use rsynko_media::portable_file_name;
-use rsynko_rsync::{
-    RsyncEndpointExt, SyncCommandExt, SyncCommandViewAlg, SyncMode, SyncProfile, sync_profile,
-};
+use rsynko_rsync::{RsyncEndpointExt, SyncCommandExt, SyncCommandViewAlg, SyncMode, SyncProfile, sync_profile};
 use rsynko_ui::{DiscoveryState, FormatChoiceViewAlg, FormatLabelExt, FormatRolesExt};
 use std::ops::Not;
 use std::path::{Path, PathBuf};
@@ -32,16 +30,8 @@ pub struct SourceRequest {
 impl SourceRequest {
     /// Constructs a source request with explicit output and download options.
     #[must_use]
-    pub fn new(
-        source: impl Into<String>,
-        output: Option<PathBuf>,
-        options: DownloadOptions,
-    ) -> Self {
-        Self {
-            source: source.into(),
-            output,
-            options,
-        }
+    pub fn new(source: impl Into<String>, output: Option<PathBuf>, options: DownloadOptions) -> Self {
+        Self { source: source.into(), output, options }
     }
 }
 
@@ -74,12 +64,7 @@ impl DownloadsAlg for MemoryManager {
 }
 
 impl SourceRequestAlg for MemoryManager {
-    fn source(
-        &self,
-        input: impl Into<String>,
-        output: Self::Output,
-        options: Self::Options,
-    ) -> Self::Source {
+    fn source(&self, input: impl Into<String>, output: Self::Output, options: Self::Options) -> Self::Source {
         SourceRequest::new(input, output, options)
     }
 }
@@ -121,12 +106,7 @@ impl OutputChoiceAlg for MemoryManager {
 }
 
 impl SourceRequestAlg for ManagerState {
-    fn source(
-        &self,
-        input: impl Into<String>,
-        output: Self::Output,
-        options: Self::Options,
-    ) -> Self::Source {
+    fn source(&self, input: impl Into<String>, output: Self::Output, options: Self::Options) -> Self::Source {
         SourceRequest::new(input, output, options)
     }
 }
@@ -381,29 +361,18 @@ impl QueueEntry {
     /// Derives visible details controls from transfer state.
     #[must_use]
     pub fn detail_controls(&self) -> Vec<DetailControl> {
-        let rehearsed = matches!(self.rehearsal, Rehearsal::Unrehearsed)
-            .not()
-            .then_some(DetailControl::Report);
-        let rehearsal = self
-            .request
-            .options
-            .dry_run()
-            .is_some()
-            .then_some(DetailControl::DryRun);
+        let rehearsed = matches!(self.rehearsal, Rehearsal::Unrehearsed).not().then_some(DetailControl::Report);
+        let rehearsal = self.request.options.dry_run().is_some().then_some(DetailControl::DryRun);
         // A request performed by naming a program states that command; one fetched states none.
-        let commanded = self
-            .stated_command()
-            .is_some()
-            .then_some(DetailControl::Command);
+        let commanded = self.stated_command().is_some().then_some(DetailControl::Command);
         match self.transfer.phase {
             TransferPhase::Ready => [
                 // An input already read cannot change: everything derived from it would be a lie.
                 (self.output_naming() == OutputNaming::Stated).then_some(DetailControl::Input),
                 Some(DetailControl::Output),
                 // A media item chooses a representation; a folder chooses a way of transferring.
-                (self.request.options.media_streams().is_some()
-                    || self.request.options.profile().is_some())
-                .then_some(DetailControl::Format),
+                (self.request.options.media_streams().is_some() || self.request.options.profile().is_some())
+                    .then_some(DetailControl::Format),
                 commanded,
                 rehearsed,
                 Some(DetailControl::Log),
@@ -453,9 +422,7 @@ impl QueueEntry {
                 Some(true) => SpaceAction::Rehearse,
                 Some(false) | None => SpaceAction::Start,
             }),
-            TransferPhase::Extracting | TransferPhase::Downloading
-                if self.transfer.pause_supported =>
-            {
+            TransferPhase::Extracting | TransferPhase::Downloading if self.transfer.pause_supported => {
                 Some(SpaceAction::Pause)
             }
             TransferPhase::Paused => Some(SpaceAction::Resume),
@@ -480,9 +447,7 @@ impl QueueEntry {
     pub fn transfer_command(&self) -> Option<SyncCommand> {
         let dry_run = self.request.options.dry_run()?;
         let destination = self.output()?;
-        let mode = SyncMode::transfer()
-            .rehearsed(dry_run)
-            .profiled(self.request.options.profile()?);
+        let mode = SyncMode::transfer().rehearsed(dry_run).profiled(self.request.options.profile()?);
         Some(RsyncSyntax.transfer_command(
             &RsyncSyntax.read_endpoint(&self.request.source),
             &RsyncSyntax.read_endpoint(&destination.display().to_string()),
@@ -497,10 +462,7 @@ impl QueueEntry {
         Some(format!(
             "{} {}",
             RsyncSyntax.command_program(&command),
-            RsyncSyntax
-                .command_arguments(&command)
-                .collect::<Vec<_>>()
-                .join(" ")
+            RsyncSyntax.command_arguments(&command).collect::<Vec<_>>().join(" ")
         ))
     }
 
@@ -529,10 +491,7 @@ impl QueueEntry {
     /// Derives the source input before inspection and the media title afterward.
     #[must_use]
     pub fn label(&self) -> &str {
-        self.title
-            .as_deref()
-            .filter(|title| !title.is_empty())
-            .unwrap_or(&self.request.source)
+        self.title.as_deref().filter(|title| !title.is_empty()).unwrap_or(&self.request.source)
     }
 }
 
@@ -585,11 +544,7 @@ impl QueueEntryAlg for QueueEntry {
 
     fn output_naming(&self) -> OutputNaming {
         // A transferred path is stated by whoever asked for it; a downloaded file is named here.
-        if self.request.options.profile().is_some() {
-            OutputNaming::Stated
-        } else {
-            OutputNaming::Portable
-        }
+        if self.request.options.profile().is_some() { OutputNaming::Stated } else { OutputNaming::Portable }
     }
 
     fn stated_command(&self) -> Option<String> {
@@ -687,13 +642,7 @@ impl RequestOptionsAlg for QueueEntry {
             .copied()
             .map(sync_profile::to)
             .collect::<Vec<_>>();
-        ways.into_iter().chain(
-            self.formats
-                .available()
-                .unwrap_or_default()
-                .iter()
-                .map(|format| format.id.as_str()),
-        )
+        ways.into_iter().chain(self.formats.available().unwrap_or_default().iter().map(|format| format.id.as_str()))
     }
 
     fn choice_summary(&self, choice: &str) -> Option<&str> {
@@ -799,17 +748,13 @@ impl ManagerState {
 
     /// Observes all waiting entries in collection order.
     pub fn waiting(&self) -> impl Iterator<Item = &QueueEntry> {
-        self.queue
-            .iter()
-            .filter(|entry| entry.transfer.phase == TransferPhase::Waiting)
+        self.queue.iter().filter(|entry| entry.transfer.phase == TransferPhase::Waiting)
     }
 
     /// Observes the first format inspection waiting for an interpreter.
     #[must_use]
     pub fn first_waiting_format_catalog(&self) -> Option<&QueueEntry> {
-        self.queue
-            .iter()
-            .find(|entry| entry.formats == FormatCatalog::Waiting)
+        self.queue.iter().find(|entry| entry.formats == FormatCatalog::Waiting)
     }
 
     /// Observes whether any transfer is active.
@@ -912,11 +857,7 @@ impl QueuePauseAlg for ManagerState {
                 entry.transfer.phase = TransferPhase::Paused;
             }
             Some(SpaceAction::Resume) => {
-                entry.transfer.phase = entry
-                    .transfer
-                    .resume_phase
-                    .take()
-                    .unwrap_or(TransferPhase::Downloading);
+                entry.transfer.phase = entry.transfer.resume_phase.take().unwrap_or(TransferPhase::Downloading);
             }
             // Pausing names an active transfer; starting and rehearsing are not that.
             Some(SpaceAction::Start | SpaceAction::Rehearse) | None => {}
@@ -932,18 +873,13 @@ impl QueueDuplicateAlg for ManagerState {
         let options = entry.request.options.clone().rehearsing();
         // A transfer is the pair of ends it names, so duplicating one keeps both. A download
         // produces a file of its own, and two of them may not produce the same one.
-        let output = entry
-            .request
-            .options
-            .profile()
-            .and(entry.request.output.clone());
+        let output = entry.request.options.profile().and(entry.request.output.clone());
         let stated = output.is_some();
         let formats = match entry.formats {
             FormatCatalog::Available(formats) => FormatCatalog::Available(formats),
-            FormatCatalog::Unknown
-            | FormatCatalog::Waiting
-            | FormatCatalog::Inspecting
-            | FormatCatalog::Failed(_) => FormatCatalog::Unknown,
+            FormatCatalog::Unknown | FormatCatalog::Waiting | FormatCatalog::Inspecting | FormatCatalog::Failed(_) => {
+                FormatCatalog::Unknown
+            }
         };
         let duplicate = QueueId(self.next_id);
         self.next_id = self.next_id.saturating_add(1);
@@ -993,12 +929,7 @@ impl QueueFormatEditAlg for ManagerState {
         }
         // One list states the choices: prefer a role, or fix one identity extraction discovered.
         // A request choosing no media role offers no roles to cycle through, only identities.
-        let offered = entry
-            .request
-            .options
-            .media_streams()
-            .map(|_| entry.offered_streams())
-            .unwrap_or_default();
+        let offered = entry.request.options.media_streams().map(|_| entry.offered_streams()).unwrap_or_default();
         let choices: Vec<DownloadOptions> = offered
             .into_iter()
             .map(|streams| entry.request.options.clone().with_media_streams(streams))
@@ -1008,19 +939,10 @@ impl QueueFormatEditAlg for ManagerState {
                     .available()
                     .unwrap_or_default()
                     .iter()
-                    .map(|format| {
-                        entry
-                            .request
-                            .options
-                            .clone()
-                            .with_format(FormatChoice::Id(format.id.clone()))
-                    }),
+                    .map(|format| entry.request.options.clone().with_format(FormatChoice::Id(format.id.clone()))),
             )
             .collect();
-        let current = choices
-            .iter()
-            .position(|choice| *choice == entry.request.options)
-            .unwrap_or(0);
+        let current = choices.iter().position(|choice| *choice == entry.request.options).unwrap_or(0);
         let next = if forward {
             (current + 1) % choices.len()
         } else if current == 0 {
@@ -1079,20 +1001,12 @@ impl FormatCatalogStateAlg for ManagerState {
             let offered = entry.offered_streams();
             if let Some(carried) = offered.first().copied() {
                 if !offered.contains(&asked) {
-                    entry.request.options =
-                        entry.request.options.clone().with_media_streams(carried);
+                    entry.request.options = entry.request.options.clone().with_media_streams(carried);
                 }
-            } else if let Some(named) = entry
-                .formats
-                .available()
-                .and_then(|described| described.first())
-                .map(|format| format.id.clone())
+            } else if let Some(named) =
+                entry.formats.available().and_then(|described| described.first()).map(|format| format.id.clone())
             {
-                entry.request.options = entry
-                    .request
-                    .options
-                    .clone()
-                    .with_format(FormatChoice::Id(named));
+                entry.request.options = entry.request.options.clone().with_format(FormatChoice::Id(named));
             }
         }
         refresh_default_output(entry);
@@ -1183,11 +1097,7 @@ fn refresh_default_output(entry: &mut QueueEntry) {
     let Some(media_id) = entry.media_id.as_deref() else {
         return;
     };
-    entry.request.output = Some(portable_file_name(
-        entry.title.as_deref(),
-        media_id,
-        selected_extension(entry),
-    ));
+    entry.request.output = Some(portable_file_name(entry.title.as_deref(), media_id, selected_extension(entry)));
 }
 
 fn selected_extension(entry: &QueueEntry) -> Option<&str> {
@@ -1196,18 +1106,9 @@ fn selected_extension(entry: &QueueEntry) -> Option<&str> {
         FormatChoice::Best => formats
             .iter()
             .rev()
-            .find(|format| {
-                entry
-                    .request
-                    .options
-                    .media_streams()
-                    .is_some_and(|streams| role_accepts(streams, format))
-            })
+            .find(|format| entry.request.options.media_streams().is_some_and(|streams| role_accepts(streams, format)))
             .and_then(Format::extension),
-        FormatChoice::Id(id) => formats
-            .iter()
-            .find(|format| format.id == *id)
-            .and_then(Format::extension),
+        FormatChoice::Id(id) => formats.iter().find(|format| format.id == *id).and_then(Format::extension),
     }
 }
 
@@ -1275,24 +1176,15 @@ impl TransferObservationInterpreter for EntryObservation<'_> {
     }
 
     fn completed(&mut self, destination: PathBuf, bytes: u64) {
-        self.0.note(format!(
-            "published {} ({bytes} bytes)",
-            destination.display()
-        ));
+        self.0.note(format!("published {} ({bytes} bytes)", destination.display()));
         self.0.transfer.phase = TransferPhase::Complete;
         self.0.transfer.terminal = Some(DownloadEvent::Succeeded { destination, bytes });
     }
 
     fn failed(&mut self, destination: PathBuf, message: String) {
-        self.0.note(format!(
-            "retrieval failed at {}: {message}",
-            destination.display()
-        ));
+        self.0.note(format!("retrieval failed at {}: {message}", destination.display()));
         self.0.transfer.phase = TransferPhase::Failed;
-        self.0.transfer.terminal = Some(DownloadEvent::Failed {
-            destination,
-            message,
-        });
+        self.0.transfer.terminal = Some(DownloadEvent::Failed { destination, message });
     }
 
     fn program_failed(&mut self, summary: String, detail: String) {
@@ -1343,10 +1235,7 @@ impl RehearsalStateAlg for ManagerState {
             }
             RehearsalObservationOp::Reported { changes } => {
                 let altered = changes.iter().filter(|change| change.kind.alters()).count();
-                entry.note(format!(
-                    "the rehearsal stated {altered} of {} paths would change",
-                    changes.len()
-                ));
+                entry.note(format!("the rehearsal stated {altered} of {} paths would change", changes.len()));
                 // A rehearsal is not a start: the request stays exactly as editable as it was.
                 entry.transfer.phase = TransferPhase::Ready;
                 entry.rehearsal = Rehearsal::Reported(changes);
@@ -1480,9 +1369,7 @@ const RETRIEVED_SCHEMES: [&str; 3] = ["https://", "http://", "fixture://"];
 /// it, so `/home/dev/music`, `nas.local:/srv/data`, and `rsync://nas.local/data` are transfers,
 /// and adding a source to this composition is adding what it recognizes here.
 fn recognized(line: &str) -> bool {
-    RETRIEVED_SCHEMES
-        .iter()
-        .any(|scheme| line.starts_with(scheme))
+    RETRIEVED_SCHEMES.iter().any(|scheme| line.starts_with(scheme))
 }
 
 /// States one described format the way the record reads it back.

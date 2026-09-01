@@ -13,10 +13,7 @@ use std::error::Error;
 use std::io::{self, IsTerminal};
 
 /// Names this application and the version of it that is running.
-const RSYNKO: Application<'static> = Application {
-    name: env!("CARGO_BIN_NAME"),
-    version: env!("CARGO_PKG_VERSION"),
-};
+const RSYNKO: Application<'static> = Application { name: env!("CARGO_BIN_NAME"), version: env!("CARGO_PKG_VERSION") };
 
 /// Reads what was asked for, and states it to whichever interpreter can be read.
 fn main() -> Result<(), Box<dyn Error>> {

@@ -50,10 +50,7 @@ impl InfoValue {
     /// Integral observations are widened, which is exact for every magnitude a format states and
     /// approximate beyond it. Comparison is the only thing this crate does with the result.
     #[must_use]
-    #[expect(
-        clippy::cast_precision_loss,
-        reason = "format observations are compared, not accumulated"
-    )]
+    #[expect(clippy::cast_precision_loss, reason = "format observations are compared, not accumulated")]
     pub fn as_number(&self) -> Option<f64> {
         match self {
             Self::Integer(value) => Some(*value as f64),
@@ -72,11 +69,7 @@ pub struct InfoRecord(BTreeMap<String, InfoValue>);
 
 impl InfoRecord {
     /// Inserts a field and returns the previously denoted value, if any.
-    pub fn insert(
-        &mut self,
-        key: impl Into<String>,
-        value: impl Into<InfoValue>,
-    ) -> Option<InfoValue> {
+    pub fn insert(&mut self, key: impl Into<String>, value: impl Into<InfoValue>) -> Option<InfoValue> {
         self.0.insert(key.into(), value.into())
     }
 
@@ -141,9 +134,7 @@ impl Format {
     /// Observes one named truth, where an unstated observation denotes falsity.
     #[must_use]
     pub fn flag(&self, key: &str) -> bool {
-        self.observe(key)
-            .and_then(InfoValue::as_bool)
-            .unwrap_or(false)
+        self.observe(key).and_then(InfoValue::as_bool).unwrap_or(false)
     }
 
     /// Observes the container or filename extension when stated.
@@ -186,9 +177,7 @@ impl Artifact {
     /// Observes where the artifact currently rests when that has been stated.
     #[must_use]
     pub fn location(&self) -> Option<&str> {
-        self.metadata
-            .get(ARTIFACT_LOCATION)
-            .and_then(InfoValue::as_text)
+        self.metadata.get(ARTIFACT_LOCATION).and_then(InfoValue::as_text)
     }
 }
 
@@ -316,18 +305,14 @@ pub fn predicate_accepts(predicate: &FormatPredicate, format: &Format) -> bool {
         FormatPredicate::Observed(key) => format.observe(key).is_some(),
         FormatPredicate::Text { key, value } => format.text(key) == Some(value.as_str()),
         FormatPredicate::Flag { key, value } => format.flag(key) == *value,
-        FormatPredicate::Number {
-            key,
-            comparison,
-            value,
-        } => format.number(key).is_some_and(|observed| match comparison {
-            FormatComparison::AtMost => observed <= *value,
-            FormatComparison::Exactly => (observed - *value).abs() < f64::EPSILON,
-            FormatComparison::AtLeast => observed >= *value,
-        }),
-        FormatPredicate::All(left, right) => {
-            predicate_accepts(left, format) && predicate_accepts(right, format)
+        FormatPredicate::Number { key, comparison, value } => {
+            format.number(key).is_some_and(|observed| match comparison {
+                FormatComparison::AtMost => observed <= *value,
+                FormatComparison::Exactly => (observed - *value).abs() < f64::EPSILON,
+                FormatComparison::AtLeast => observed >= *value,
+            })
         }
+        FormatPredicate::All(left, right) => predicate_accepts(left, format) && predicate_accepts(right, format),
         FormatPredicate::Not(child) => !predicate_accepts(child, format),
     }
 }
@@ -346,22 +331,18 @@ where
     This: FormatPredicateMatchAlg<Predicate = FormatPredicate, Format = Format>,
 {
     match selection {
-        FormatSelection::Best(predicate) => formats
-            .iter()
-            .rev()
-            .find(|format| alg.format_matches(predicate, format))
-            .map(|format| vec![format]),
-        FormatSelection::Worst(predicate) => formats
-            .iter()
-            .find(|format| alg.format_matches(predicate, format))
-            .map(|format| vec![format]),
-        FormatSelection::Merge(selections) => selections
-            .iter()
-            .traverse_iter(|child| interpret_selection(alg, formats, child).ok_or(()))
-            .ok(),
-        FormatSelection::Fallback(selections) => selections
-            .iter()
-            .find_map(|child| interpret_selection(alg, formats, child)),
+        FormatSelection::Best(predicate) => {
+            formats.iter().rev().find(|format| alg.format_matches(predicate, format)).map(|format| vec![format])
+        }
+        FormatSelection::Worst(predicate) => {
+            formats.iter().find(|format| alg.format_matches(predicate, format)).map(|format| vec![format])
+        }
+        FormatSelection::Merge(selections) => {
+            selections.iter().traverse_iter(|child| interpret_selection(alg, formats, child).ok_or(())).ok()
+        }
+        FormatSelection::Fallback(selections) => {
+            selections.iter().find_map(|child| interpret_selection(alg, formats, child))
+        }
     }
 }
 
@@ -390,10 +371,7 @@ impl ProcessingStep {
     /// Constructs a processing step.
     #[must_use]
     pub fn new(stage: ProcessingStage, processor: impl Into<String>) -> Self {
-        Self {
-            stage,
-            processor: ProcessorId::new(processor),
-        }
+        Self { stage, processor: ProcessorId::new(processor) }
     }
 }
 

@@ -61,9 +61,7 @@ where
             ManagerPage::Details(id) => breadcrumbs.push(segment(self.entry_label(id))),
             ManagerPage::Formats(id) => {
                 // What a request chooses between is not the same thing for every request.
-                let chooses_media = self
-                    .queue_entry(id)
-                    .is_some_and(|entry| entry.performer() == Performer::Retrieval);
+                let chooses_media = self.queue_entry(id).is_some_and(|entry| entry.performer() == Performer::Retrieval);
                 let choice = if chooses_media { "Formats" } else { "Transfer" };
                 breadcrumbs.extend([segment(self.entry_label(id)), segment(choice)]);
             }
@@ -72,9 +70,7 @@ where
             }
             ManagerPage::Output(id) => {
                 // A file this application names is not the same thing as a path somebody stated.
-                let stated = self
-                    .queue_entry(id)
-                    .is_some_and(|entry| entry.output_naming() == OutputNaming::Stated);
+                let stated = self.queue_entry(id).is_some_and(|entry| entry.output_naming() == OutputNaming::Stated);
                 let named = if stated { "Output" } else { "File name" };
                 breadcrumbs.extend([segment(self.entry_label(id)), segment(named)]);
             }
@@ -93,14 +89,11 @@ where
 
     /// Observes what one identity denotes, or that the collection no longer holds it.
     fn entry_label(&self, id: This::Id) -> &str {
-        self.queue_entry(id)
-            .map_or("Missing entry", QueueEntryAlg::label)
+        self.queue_entry(id).map_or("Missing entry", QueueEntryAlg::label)
     }
 }
 
 /// Names one breadcrumb segment.
 fn segment(label: impl Into<String>) -> Breadcrumb {
-    Breadcrumb {
-        label: label.into(),
-    }
+    Breadcrumb { label: label.into() }
 }

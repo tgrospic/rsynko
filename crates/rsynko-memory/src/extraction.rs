@@ -37,30 +37,14 @@ impl ReferenceExtractor {
 
     /// Constructs a successful deterministic extractor.
     #[must_use]
-    pub fn succeeds(
-        key: impl Into<String>,
-        accepted_prefix: impl Into<String>,
-        extraction: Extraction,
-    ) -> Self {
-        Self::new(
-            key,
-            [accepted_prefix],
-            ReferenceExtractionOutcome::Success(extraction),
-        )
+    pub fn succeeds(key: impl Into<String>, accepted_prefix: impl Into<String>, extraction: Extraction) -> Self {
+        Self::new(key, [accepted_prefix], ReferenceExtractionOutcome::Success(extraction))
     }
 
     /// Constructs a failing deterministic extractor.
     #[must_use]
-    pub fn fails(
-        key: impl Into<String>,
-        accepted_prefix: impl Into<String>,
-        message: impl Into<String>,
-    ) -> Self {
-        Self::new(
-            key,
-            [accepted_prefix],
-            ReferenceExtractionOutcome::Failure(message.into()),
-        )
+    pub fn fails(key: impl Into<String>, accepted_prefix: impl Into<String>, message: impl Into<String>) -> Self {
+        Self::new(key, [accepted_prefix], ReferenceExtractionOutcome::Failure(message.into()))
     }
 }
 
@@ -122,23 +106,14 @@ impl ExtractionCatalogAlg for ReferenceExtractorRegistry {
         self.extractors
             .iter()
             .find(|candidate| candidate.key == *extractor)
-            .is_some_and(|candidate| {
-                candidate
-                    .accepted_prefixes
-                    .iter()
-                    .any(|prefix| url.starts_with(prefix))
-            })
+            .is_some_and(|candidate| candidate.accepted_prefixes.iter().any(|prefix| url.starts_with(prefix)))
     }
 }
 
 impl ExtractionApplyAlg for ReferenceExtractorRegistry {
     type Error = ReferenceExtractionError;
 
-    fn extract_with(
-        &self,
-        extractor: &ExtractorKey,
-        _url: &str,
-    ) -> Result<Extraction, Self::Error> {
+    fn extract_with(&self, extractor: &ExtractorKey, _url: &str) -> Result<Extraction, Self::Error> {
         let candidate = self
             .extractors
             .iter()
@@ -147,12 +122,10 @@ impl ExtractionApplyAlg for ReferenceExtractorRegistry {
         self.applications.borrow_mut().push(extractor.clone());
         match &candidate.outcome {
             ReferenceExtractionOutcome::Success(extraction) => Ok(extraction.clone()),
-            ReferenceExtractionOutcome::Failure(message) => {
-                Err(ReferenceExtractionError::ExtractorFailed {
-                    extractor: extractor.clone(),
-                    message: message.clone(),
-                })
-            }
+            ReferenceExtractionOutcome::Failure(message) => Err(ReferenceExtractionError::ExtractorFailed {
+                extractor: extractor.clone(),
+                message: message.clone(),
+            }),
         }
     }
 }

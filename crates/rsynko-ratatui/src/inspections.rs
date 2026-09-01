@@ -36,10 +36,7 @@ pub struct Inspected {
 impl<'a> Inspections<'a> {
     /// Attends to the source inspections this collection asks for.
     pub const fn attending(manager: &'a mut ManagerState) -> Self {
-        Self {
-            manager,
-            clock: Monotonic,
-        }
+        Self { manager, clock: Monotonic }
     }
 }
 
@@ -55,33 +52,21 @@ impl SessionSorts for Inspections<'_> {
 impl UndertakingAlg for Inspections<'_> {
     fn unattended(&self) -> Vec<QueueId> {
         // One source is inspected at a time: naming only the first is what makes that so.
-        self.manager
-            .first_waiting_format_catalog()
-            .map(QueueEntry::id)
-            .into_iter()
-            .collect()
+        self.manager.first_waiting_format_catalog().map(QueueEntry::id).into_iter().collect()
     }
 
     fn begin(&self, id: &QueueId) -> Result<InspectionRun, String> {
-        let source = self
-            .manager
-            .queue_entry(*id)
-            .ok_or_else(|| "the request is gone".to_owned())?
-            .source()
-            .to_owned();
+        let source = self.manager.queue_entry(*id).ok_or_else(|| "the request is gone".to_owned())?.source().to_owned();
         let worker = thread::spawn(move || {
             let environment = RuntimeEnvironment::build().map_err(|error| error.to_string())?;
-            let Extraction::Media(media) = environment
-                .extract_url(&source)
-                .map_err(|error| media_failure(&error.to_string()))?
+            let Extraction::Media(media) =
+                environment.extract_url(&source).map_err(|error| media_failure(&error.to_string()))?
             else {
                 return Err("the extracted result is not a single media item".to_owned());
             };
             Ok(Inspected {
                 media_id: media.id,
-                title: MediaSyntax
-                    .metadata_text(&media.metadata, "title")
-                    .map(str::to_owned),
+                title: MediaSyntax.metadata_text(&media.metadata, "title").map(str::to_owned),
                 notes: MediaSyntax.granting_notes(&media.metadata),
                 formats: media.formats,
             })
@@ -120,8 +105,7 @@ impl RunHoldAlg for Inspections<'_> {
 
 impl AttentionAlg for Inspections<'_> {
     fn begun(&mut self, id: &QueueId, _holdable: bool) {
-        self.manager
-            .apply_format_catalog_event(*id, FormatDiscoveryOp::Started {});
+        self.manager.apply_format_catalog_event(*id, FormatDiscoveryOp::Started {});
     }
 
     fn heard(&mut self, _id: &QueueId, report: Infallible) {
@@ -133,14 +117,11 @@ impl AttentionAlg for Inspections<'_> {
     fn ended(&mut self, id: &QueueId, ending: Result<Inspected, String>) {
         let event = match ending {
             Ok(found) => {
-                self.manager
-                    .apply_source_metadata(*id, found.media_id, found.title);
+                self.manager.apply_source_metadata(*id, found.media_id, found.title);
                 for note in found.notes {
                     self.manager.note_download(*id, note);
                 }
-                FormatDiscoveryOp::Available {
-                    formats: found.formats,
-                }
+                FormatDiscoveryOp::Available { formats: found.formats }
             }
             Err(message) => FormatDiscoveryOp::Failed { message },
         };

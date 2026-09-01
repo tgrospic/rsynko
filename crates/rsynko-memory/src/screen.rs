@@ -29,13 +29,7 @@ impl ScreenSyntax for TextScreen {
         runs.collect()
     }
 
-    fn edited_line(
-        &self,
-        prefix: impl Into<String>,
-        text: &str,
-        cursor: usize,
-        _emphasis: Emphasis,
-    ) -> Self::Line {
+    fn edited_line(&self, prefix: impl Into<String>, text: &str, cursor: usize, _emphasis: Emphasis) -> Self::Line {
         // The cursor is stated where a reader would see it, since text has no cursor of its own.
         let (before, after) = text.split_at(cursor.min(text.len()));
         format!("{}{before}|{after}", prefix.into())
@@ -54,12 +48,7 @@ impl ScreenSyntax for TextScreen {
         [title.into()].into_iter().chain(rows.flatten()).collect()
     }
 
-    fn message(
-        &self,
-        title: impl Into<String>,
-        message: impl Into<String>,
-        _emphasis: Emphasis,
-    ) -> Self::Body {
+    fn message(&self, title: impl Into<String>, message: impl Into<String>, _emphasis: Emphasis) -> Self::Body {
         vec![title.into(), message.into()]
     }
 
@@ -71,15 +60,9 @@ impl ScreenSyntax for TextScreen {
         cursor: usize,
         examples: impl Iterator<Item = (String, String)>,
     ) -> Self::Body {
-        let content = if text.is_empty() {
-            placeholder.into()
-        } else {
-            self.edited_line("", text, cursor, Emphasis::Plain)
-        };
-        [title.into(), content]
-            .into_iter()
-            .chain(examples.map(|(shape, means)| format!("{shape}  {means}")))
-            .collect()
+        let content =
+            if text.is_empty() { placeholder.into() } else { self.edited_line("", text, cursor, Emphasis::Plain) };
+        [title.into(), content].into_iter().chain(examples.map(|(shape, means)| format!("{shape}  {means}"))).collect()
     }
 
     fn record(&self, title: impl Into<String>, notes: impl Iterator<Item = String>) -> Self::Body {
@@ -97,11 +80,7 @@ impl ScreenSyntax for TextScreen {
         status: impl Into<String>,
         footer: Self::Line,
     ) -> Self::Screen {
-        [header]
-            .into_iter()
-            .chain(body)
-            .chain([status.into(), footer])
-            .collect()
+        [header].into_iter().chain(body).chain([status.into(), footer]).collect()
     }
 
     fn screen_text(&self, screen: &Self::Screen) -> impl Iterator<Item = String> {

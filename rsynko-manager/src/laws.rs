@@ -42,13 +42,7 @@ where
     /// interpreter recognizes, and a scenario about the collection is not about that.
     fn author_law_queue(&mut self, count: usize) -> Vec<This::Id> {
         let requests = (0..count)
-            .map(|index| {
-                self.source(
-                    law_source(index),
-                    self.suggested_output(),
-                    self.progressive(),
-                )
-            })
+            .map(|index| self.source(law_source(index), self.suggested_output(), self.progressive()))
             .collect();
         let ids = self.append_sources(requests);
         // Where the cursor rests after adding is what submitting states; a scenario about
@@ -204,11 +198,8 @@ where
         self.set_page(ManagerPage::AddSources);
         self.set_draft(format!("  {}  \n\n{}\n", law_source(0), law_source(1)));
         self.submit_draft();
-        let submitted: Vec<String> = self
-            .queue_ids()
-            .filter_map(|id| self.queue_entry(id))
-            .map(|entry| entry.label().to_owned())
-            .collect();
+        let submitted: Vec<String> =
+            self.queue_ids().filter_map(|id| self.queue_entry(id)).map(|entry| entry.label().to_owned()).collect();
         if submitted != [law_source(0), law_source(1)] {
             bail!("submitting did not add exactly the sources the draft names: {submitted:?}");
         }
@@ -329,12 +320,7 @@ where
                 total: Some(10_000_000),
             },
         );
-        self.apply_transfer_event(
-            ids[0],
-            TransferObservationOp::Elapsed {
-                elapsed: Duration::from_secs(2),
-            },
-        );
+        self.apply_transfer_event(ids[0], TransferObservationOp::Elapsed { elapsed: Duration::from_secs(2) });
         if self.law_transferred(ids[1]) != Some(0) {
             bail!("a keyed observation reached an identity it does not address");
         }
@@ -365,13 +351,7 @@ where
         if observed.transfer_complete() {
             bail!("full byte progress denoted completion before terminal success");
         }
-        self.apply_transfer_event(
-            ids[0],
-            TransferObservationOp::Completed {
-                destination,
-                bytes: 10_000_000,
-            },
-        );
+        self.apply_transfer_event(ids[0], TransferObservationOp::Completed { destination, bytes: 10_000_000 });
         if !self.law_entry(ids[0])?.transfer_complete() {
             bail!("terminal success did not denote completion");
         }
@@ -452,10 +432,7 @@ where
             bail!("a ready entry naming an output does not offer Start");
         }
         let derived = self.law_entry(ids[0])?.output().map(Path::to_owned);
-        let stem = derived
-            .as_deref()
-            .and_then(Path::file_stem)
-            .and_then(OsStr::to_str);
+        let stem = derived.as_deref().and_then(Path::file_stem).and_then(OsStr::to_str);
         if stem != Some("Law 0") {
             bail!("the extracted title is not the default output stem: {stem:?}");
         }
@@ -469,10 +446,7 @@ where
             bail!("applying an output-name draft named no output");
         };
         if output.components().count() != 1 || output.to_string_lossy().contains(':') {
-            bail!(
-                "an applied output name is not one portable file component: {}",
-                output.display()
-            );
+            bail!("an applied output name is not one portable file component: {}", output.display());
         }
 
         self.apply_selected_space();
@@ -490,10 +464,7 @@ where
         if self.law_space(ids[0])?.is_some() {
             bail!("an active transfer offers pause although no interpreter advertises it");
         }
-        self.apply_transfer_event(
-            ids[0],
-            TransferObservationOp::PauseCapability { supported: true },
-        );
+        self.apply_transfer_event(ids[0], TransferObservationOp::PauseCapability { supported: true });
         if self.law_space(ids[0])? != Some(SpaceAction::Pause) {
             bail!("an advertised pause capability does not offer pause");
         }
@@ -513,11 +484,7 @@ where
                 detail: "no directly retrievable format matches the request".to_owned(),
             },
         );
-        if !self
-            .law_entry(ids[0])?
-            .detail_controls()
-            .contains(&DetailControl::Restart)
-        {
+        if !self.law_entry(ids[0])?.detail_controls().contains(&DetailControl::Restart) {
             bail!("a failed request offers no restart");
         }
         self.restart_selected();
@@ -620,11 +587,7 @@ where
 
         let ids = self.author_law_queue(1);
         self.apply_source_metadata(ids[0], "law".to_owned(), Some("Law".to_owned()));
-        for action in [
-            ManagerAction::Space,
-            ManagerAction::Remove,
-            ManagerAction::Activate,
-        ] {
+        for action in [ManagerAction::Space, ManagerAction::Remove, ManagerAction::Activate] {
             if self.action_availability(action) != ActionAvailability::Enabled {
                 bail!("a selected ready entry does not enable {action:?}");
             }
@@ -709,14 +672,8 @@ where
         if self.law_collected_sources(&collected) != stated {
             bail!("a collection does not hold its sources in declaration order");
         }
-        let appended = collected.add_sources([self.source(
-            law_source(2),
-            self.suggested_output(),
-            self.progressive(),
-        )]);
-        if self.law_collected_sources(&appended)
-            != [stated[0].clone(), stated[1].clone(), law_source(2)]
-        {
+        let appended = collected.add_sources([self.source(law_source(2), self.suggested_output(), self.progressive())]);
+        if self.law_collected_sources(&appended) != [stated[0].clone(), stated[1].clone(), law_source(2)] {
             bail!("adding did not append after what the collection already holds");
         }
         Ok(())
@@ -771,10 +728,7 @@ where
             bail!("notes are not observed in the order they were stated: {stated:?}");
         }
 
-        let controls = self
-            .queue_entry(ids[0])
-            .map(QueueEntryAlg::detail_controls)
-            .unwrap_or_default();
+        let controls = self.queue_entry(ids[0]).map(QueueEntryAlg::detail_controls).unwrap_or_default();
         if !controls.contains(&DetailControl::Log) {
             bail!("an entry offers no record among its controls: {controls:?}");
         }
@@ -891,10 +845,7 @@ where
         if submitted.chosen_choice().is_none() {
             bail!("a folder transfers no stated way");
         }
-        if submitted
-            .selectable_choices()
-            .any(|choice| submitted.choice_summary(choice).is_none())
-        {
+        if submitted.selectable_choices().any(|choice| submitted.choice_summary(choice).is_none()) {
             bail!("a way of transferring does not say what it does");
         }
         if submitted.dry_run() != Some(true) {
@@ -1028,10 +979,7 @@ where
         if self.rehearsal_law_entry(id)?.dry_run().is_some() {
             bail!("a request states a rehearsal mode it was never given");
         }
-        if self
-            .rehearsal_law_controls(id)?
-            .contains(&DetailControl::DryRun)
-        {
+        if self.rehearsal_law_controls(id)?.contains(&DetailControl::DryRun) {
             bail!("a request with no rehearsal mode offers the control turning it");
         }
         self.law_offer_rehearsal(id);
@@ -1040,16 +988,10 @@ where
         if self.rehearsal_law_entry(id)?.dry_run() != Some(true) {
             bail!("a folder request does not begin by stating what it would do");
         }
-        if !self
-            .rehearsal_law_controls(id)?
-            .contains(&DetailControl::DryRun)
-        {
+        if !self.rehearsal_law_controls(id)?.contains(&DetailControl::DryRun) {
             bail!("a request with a rehearsal mode does not offer the control turning it");
         }
-        if self
-            .rehearsal_law_controls(id)?
-            .contains(&DetailControl::Report)
-        {
+        if self.rehearsal_law_controls(id)?.contains(&DetailControl::Report) {
             bail!("an unrehearsed request offers a report of what it would do");
         }
         if self.rehearsal_law_entry(id)?.space_action() != Some(SpaceAction::Rehearse) {
@@ -1077,18 +1019,11 @@ where
             .planned_changes()
             .map(|change| (change.change_path().to_owned(), change.change_kind()))
             .collect::<Vec<_>>();
-        if reported
-            != vec![
-                ("kept.txt".to_owned(), ChangeKind::Unchanged),
-                ("new.txt".to_owned(), ChangeKind::Create),
-            ]
+        if reported != vec![("kept.txt".to_owned(), ChangeKind::Unchanged), ("new.txt".to_owned(), ChangeKind::Create)]
         {
             bail!("a report does not state the changes the rehearsal stated: {reported:?}");
         }
-        if !self
-            .rehearsal_law_controls(id)?
-            .contains(&DetailControl::Report)
-        {
+        if !self.rehearsal_law_controls(id)?.contains(&DetailControl::Report) {
             bail!("a rehearsed request does not offer its report");
         }
 
@@ -1102,18 +1037,10 @@ where
         if self.rehearsal_law_entry(id)?.space_action() != Some(SpaceAction::Start) {
             bail!("Space does not transfer once the rehearsal mode is off");
         }
-        if !self
-            .rehearsal_law_controls(id)?
-            .contains(&DetailControl::DryRun)
-        {
+        if !self.rehearsal_law_controls(id)?.contains(&DetailControl::DryRun) {
             bail!("turning the rehearsal mode off took away the control turning it back on");
         }
-        self.apply_rehearsal_event(
-            id,
-            RehearsalObservationOp::Failed {
-                message: "the far end refused".to_owned(),
-            },
-        );
+        self.apply_rehearsal_event(id, RehearsalObservationOp::Failed { message: "the far end refused".to_owned() });
         if self.rehearsal_law_entry(id)?.space_action().is_none() {
             bail!("a failed rehearsal left the request with nothing Space can do");
         }
@@ -1131,10 +1058,7 @@ where
     /// Returns the first violated law.
     fn check_duplicate_laws(&mut self, id: This::Id) -> Result<()> {
         let armed = self.rehearsal_law_entry(id)?;
-        let (source, output) = (
-            armed.source().to_owned(),
-            armed.output().map(Path::to_path_buf),
-        );
+        let (source, output) = (armed.source().to_owned(), armed.output().map(Path::to_path_buf));
         let Some(duplicate) = self.duplicate_queue_entry(id) else {
             bail!("a request that may be duplicated was not");
         };
@@ -1164,10 +1088,7 @@ where
         if self.rehearsal_law_entry(id)?.source() != replacement {
             bail!("a rehearsed request refused to change its input");
         }
-        if !self
-            .rehearsal_law_controls(id)?
-            .contains(&DetailControl::Input)
-        {
+        if !self.rehearsal_law_controls(id)?.contains(&DetailControl::Input) {
             bail!("a request that permits its input to change does not offer to change it");
         }
         Ok(())
@@ -1328,17 +1249,11 @@ where
     ///
     /// Returns the first violated law.
     fn options_laws(&mut self) -> Result<()> {
-        let described = [
-            ("progressive", true, true),
-            ("audio", true, false),
-            ("video", false, true),
-        ]
-        .map(|(id, audio, video)| self.law_format(id, audio, video));
-        for (role, expected) in [
-            (MediaStreams::AudioVideo, "progressive"),
-            (MediaStreams::Audio, "audio"),
-            (MediaStreams::Video, "video"),
-        ] {
+        let described = [("progressive", true, true), ("audio", true, false), ("video", false, true)]
+            .map(|(id, audio, video)| self.law_format(id, audio, video));
+        for (role, expected) in
+            [(MediaStreams::AudioVideo, "progressive"), (MediaStreams::Audio, "audio"), (MediaStreams::Video, "video")]
+        {
             let predicate = self.stream_role_format(role);
             let accepted: Vec<&str> = ["progressive", "audio", "video"]
                 .into_iter()
@@ -1354,9 +1269,7 @@ where
         let ids = self.author_law_queue(2);
         self.apply_format_catalog_event(
             ids[0],
-            FormatDiscoveryOp::Available {
-                formats: described.into_iter().collect(),
-            },
+            FormatDiscoveryOp::Available { formats: described.into_iter().collect() },
         );
         if self.law_selectable(ids[1])?.next().is_some() {
             bail!("a discovery observation reached an identity it does not address");
@@ -1374,11 +1287,7 @@ where
             walked.push(entry.chosen_choice().map(str::to_owned));
             self.cycle_queue_format(ids[0], true);
         }
-        let roles = walked
-            .iter()
-            .take(MediaStreams::OFFERED.len())
-            .filter(|chosen| chosen.is_none())
-            .count();
+        let roles = walked.iter().take(MediaStreams::OFFERED.len()).filter(|chosen| chosen.is_none()).count();
         if roles != MediaStreams::OFFERED.len() {
             bail!("selection does not begin with the offered roles: {walked:?}");
         }
@@ -1502,16 +1411,11 @@ where
         }
 
         self.apply_manager_event(ManagerIntentOp::OpenAddSources {});
-        self.apply_manager_event(ManagerIntentOp::InsertText {
-            text: "héllo".to_owned(),
-        });
+        self.apply_manager_event(ManagerIntentOp::InsertText { text: "héllo".to_owned() });
         self.apply_manager_event(ManagerIntentOp::MoveCursorLeft {});
         self.apply_manager_event(ManagerIntentOp::DeleteBeforeCursor {});
         if self.draft() != "hélo" {
-            bail!(
-                "the editing intentions do not denote the derived cursor operations: {}",
-                self.draft()
-            );
+            bail!("the editing intentions do not denote the derived cursor operations: {}", self.draft());
         }
 
         self.apply_manager_event(ManagerIntentOp::Back {});
@@ -1532,7 +1436,6 @@ where
 
     /// Observes one entry through exactly what the specification exposes about it.
     fn law_entry_shape(&self, id: This::Id) -> Option<(Vec<DetailControl>, Option<SpaceAction>)> {
-        self.queue_entry(id)
-            .map(|entry| (entry.detail_controls(), entry.space_action()))
+        self.queue_entry(id).map(|entry| (entry.detail_controls(), entry.space_action()))
     }
 }

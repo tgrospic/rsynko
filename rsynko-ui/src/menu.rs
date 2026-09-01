@@ -54,11 +54,7 @@ where
                 self.cursor_item("Select field or action"),
                 self.menu_item(
                     ManagerAction::Activate,
-                    if self.selected_detail_control().is_none() {
-                        "Close details"
-                    } else {
-                        "Activate"
-                    },
+                    if self.selected_detail_control().is_none() { "Close details" } else { "Activate" },
                 ),
                 self.menu_item(ManagerAction::Space, self.space_verb()),
                 self.menu_item(ManagerAction::Back, COLLECTION),
@@ -84,9 +80,7 @@ where
                 self.menu_item(ManagerAction::Back, "Details"),
             ],
         };
-        items
-            .into_iter()
-            .chain([self.menu_item(ManagerAction::Exit, "Quit")])
+        items.into_iter().chain([self.menu_item(ManagerAction::Exit, "Quit")])
     }
 
     /// States one entry naming one action, with the keys the page binds to it.
@@ -116,14 +110,8 @@ where
 
     /// Names what the chooser page chooses between for one request.
     fn choice_verb(&self, id: This::Id) -> &'static str {
-        let chooses_media = self
-            .queue_entry(id)
-            .is_some_and(|entry| entry.performer() == Performer::Retrieval);
-        if chooses_media {
-            "Choose format"
-        } else {
-            "Choose transfer"
-        }
+        let chooses_media = self.queue_entry(id).is_some_and(|entry| entry.performer() == Performer::Retrieval);
+        if chooses_media { "Choose format" } else { "Choose transfer" }
     }
 
     /// Names what Space would do to the selected entry, whether or not it is offered.

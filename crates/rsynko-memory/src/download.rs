@@ -33,11 +33,7 @@ pub struct ReferenceDownloadEnv {
 
 impl ReferenceDownloadEnv {
     /// Associates exact bytes with one resource URL.
-    pub fn register_resource(
-        &mut self,
-        url: impl Into<String>,
-        bytes: impl Into<Vec<u8>>,
-    ) -> Option<Vec<u8>> {
+    pub fn register_resource(&mut self, url: impl Into<String>, bytes: impl Into<Vec<u8>>) -> Option<Vec<u8>> {
         self.resources.insert(url.into(), bytes.into())
     }
 
@@ -76,20 +72,13 @@ impl FetchStreamAlg for ReferenceDownloadEnv {
     type Stream = Cursor<Vec<u8>>;
 
     fn open_fetch(&self, url: &str) -> Result<FetchStream<Self::Stream>, Self::Error> {
-        let bytes = self
-            .resources
-            .get(url)
-            .cloned()
-            .ok_or_else(|| ReferenceFetchError::UnknownResource(url.to_owned()))?;
+        let bytes =
+            self.resources.get(url).cloned().ok_or_else(|| ReferenceFetchError::UnknownResource(url.to_owned()))?;
         let total = u64::try_from(bytes.len()).ok();
         Ok(FetchStream::new(Cursor::new(bytes), total))
     }
 
-    fn read_fetch(
-        &self,
-        stream: &mut Self::Stream,
-        buffer: &mut [u8],
-    ) -> Result<usize, Self::Error> {
+    fn read_fetch(&self, stream: &mut Self::Stream, buffer: &mut [u8]) -> Result<usize, Self::Error> {
         Ok(stream.read(buffer).unwrap_or(0))
     }
 }
@@ -102,11 +91,7 @@ impl AtomicPublishAlg for ReferenceDownloadEnv {
         Ok((destination.to_owned(), Vec::default()))
     }
 
-    fn write_publication(
-        &self,
-        publication: &mut Self::Publication,
-        bytes: &[u8],
-    ) -> Result<(), Self::Error> {
+    fn write_publication(&self, publication: &mut Self::Publication, bytes: &[u8]) -> Result<(), Self::Error> {
         if self.refuse_publication {
             return Err(ReferencePublishError);
         }
@@ -144,12 +129,7 @@ impl DownloadObservationAlg for ReferenceDownloadEnv {
     type Event = DownloadEvent;
     type Progress = DownloadProgress;
 
-    fn download_progress(
-        &self,
-        destination: &Path,
-        downloaded: u64,
-        total: Option<u64>,
-    ) -> Self::Progress {
+    fn download_progress(&self, destination: &Path, downloaded: u64, total: Option<u64>) -> Self::Progress {
         DownloadSyntax.download_progress(destination, downloaded, total)
     }
 

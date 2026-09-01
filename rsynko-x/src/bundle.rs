@@ -31,9 +31,7 @@ impl Take {
     #[must_use]
     pub const fn summary(self) -> &'static str {
         match self {
-            Self::Everything => {
-                "takes every file the tweet carries, good for keeping the whole post"
-            }
+            Self::Everything => "takes every file the tweet carries, good for keeping the whole post",
             Self::Videos => "takes the videos only, good for clips",
             Self::Images => "takes the pictures only, good for photographs",
         }

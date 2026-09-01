@@ -66,14 +66,9 @@ where
             "{:<4} {:<5} {:<13}",
             self.format_identity(),
             self.format_extension().unwrap_or(UNSTATED),
-            self.format_streams()
-                .map_or("no media streams", MediaStreams::streams_label)
+            self.format_streams().map_or("no media streams", MediaStreams::streams_label)
         );
-        if described.is_empty() {
-            columns
-        } else {
-            format!("{columns} {described}")
-        }
+        if described.is_empty() { columns } else { format!("{columns} {described}") }
     }
 
     /// States what distinguishes the format from an alternative carrying the same streams.
@@ -81,8 +76,7 @@ where
         let quality = self.format_stated_quality();
         [
             quality.as_deref().map(str::to_owned),
-            self.format_bitrate()
-                .map(|bitrate| format!("{}/s", bytes_label(bitrate / 8))),
+            self.format_bitrate().map(|bitrate| format!("{}/s", bytes_label(bitrate / 8))),
             self.format_size().map(bytes_label),
             self.format_codecs().map(str::to_owned),
         ]
@@ -126,13 +120,7 @@ where
         if described.is_empty() {
             return MediaStreams::OFFERED.to_vec();
         }
-        let carried = described
-            .into_iter()
-            .filter_map(FormatDescriptionAlg::format_streams)
-            .collect::<Vec<_>>();
-        MediaStreams::OFFERED
-            .into_iter()
-            .filter(|role| carried.contains(role))
-            .collect()
+        let carried = described.into_iter().filter_map(FormatDescriptionAlg::format_streams).collect::<Vec<_>>();
+        MediaStreams::OFFERED.into_iter().filter(|role| carried.contains(role)).collect()
     }
 }

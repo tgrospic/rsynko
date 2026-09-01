@@ -21,11 +21,7 @@ pub trait FetchStreamAlg<Source: ?Sized = str> {
     /// # Errors
     ///
     /// Returns the interpreter-specific retrieval error.
-    fn read_fetch(
-        &self,
-        stream: &mut Self::Stream,
-        buffer: &mut [u8],
-    ) -> Result<usize, Self::Error>;
+    fn read_fetch(&self, stream: &mut Self::Stream, buffer: &mut [u8]) -> Result<usize, Self::Error>;
 }
 
 /// Denotes an opened resource stream and its expected byte count when known.

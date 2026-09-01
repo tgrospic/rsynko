@@ -27,8 +27,7 @@ const SIGNAL_PROGRAM: &str = "kill";
 impl ProcessHold {
     /// States which process is running, or that none is.
     pub(crate) fn running(&self, process: Option<u32>) {
-        self.running
-            .store(process.unwrap_or_default(), Ordering::SeqCst);
+        self.running.store(process.unwrap_or_default(), Ordering::SeqCst);
     }
 
     /// Observes which process is running the transfer, while one is.

@@ -23,10 +23,7 @@ where
 {
     /// States the request asking what the tweet one identity names carries.
     fn status_request(&self, id: &str) -> This::Request {
-        self.tweet_request(format!(
-            "{READING_ADDRESS}?id={id}&lang=en&token={}",
-            reading_token(id)
-        ))
+        self.tweet_request(format!("{READING_ADDRESS}?id={id}&lang=en&token={}", reading_token(id)))
     }
 }
 
@@ -45,11 +42,9 @@ pub const READING_ADDRESS: &str = "https://cdn.syndication.twimg.com/tweet-resul
 #[must_use]
 pub fn reading_token(id: &str) -> String {
     const DIGITS: &[u8; 36] = b"0123456789abcdefghijklmnopqrstuvwxyz";
-    let mut remaining = id.bytes().fold(0_u128, |carried, digit| {
-        carried
-            .saturating_mul(10)
-            .saturating_add(u128::from(digit.wrapping_sub(b'0')))
-    });
+    let mut remaining = id
+        .bytes()
+        .fold(0_u128, |carried, digit| carried.saturating_mul(10).saturating_add(u128::from(digit.wrapping_sub(b'0'))));
     let mut stated = Vec::new();
     while remaining > 0 {
         stated.push(DIGITS[usize::try_from(remaining % 36).unwrap_or_default()]);

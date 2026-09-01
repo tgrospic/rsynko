@@ -23,11 +23,7 @@ impl Gauge {
         let eighths = width * Self::LEADING.len() * usize::from(percent.min(100)) / 100;
         let filled = eighths / Self::LEADING.len();
         let leading = eighths % Self::LEADING.len();
-        Self {
-            filled,
-            leading,
-            track: width - filled - usize::from(leading > 0),
-        }
+        Self { filled, leading, track: width - filled - usize::from(leading > 0) }
     }
 
     /// Counts the cells the gauge occupies, filled and unfilled alike.
@@ -39,11 +35,6 @@ impl Gauge {
     /// States the gauge as the text a renderer draws, the track left blank.
     #[must_use]
     pub fn text(&self) -> String {
-        format!(
-            "{}{}{}",
-            "█".repeat(self.filled),
-            Self::LEADING[self.leading],
-            " ".repeat(self.track)
-        )
+        format!("{}{}{}", "█".repeat(self.filled), Self::LEADING[self.leading], " ".repeat(self.track))
     }
 }

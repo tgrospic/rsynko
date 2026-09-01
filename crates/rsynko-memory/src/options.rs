@@ -18,34 +18,19 @@ impl DownloadOptions {
     /// Selects the best progressive format containing audio and video.
     #[must_use]
     pub const fn progressive() -> Self {
-        Self {
-            media_streams: Some(MediaStreams::AudioVideo),
-            format: FormatChoice::Best,
-            profile: None,
-            dry_run: None,
-        }
+        Self { media_streams: Some(MediaStreams::AudioVideo), format: FormatChoice::Best, profile: None, dry_run: None }
     }
 
     /// Selects the best audio-only format.
     #[must_use]
     pub const fn audio() -> Self {
-        Self {
-            media_streams: Some(MediaStreams::Audio),
-            format: FormatChoice::Best,
-            profile: None,
-            dry_run: None,
-        }
+        Self { media_streams: Some(MediaStreams::Audio), format: FormatChoice::Best, profile: None, dry_run: None }
     }
 
     /// Selects the best video-only format.
     #[must_use]
     pub const fn video() -> Self {
-        Self {
-            media_streams: Some(MediaStreams::Video),
-            format: FormatChoice::Best,
-            profile: None,
-            dry_run: None,
-        }
+        Self { media_streams: Some(MediaStreams::Video), format: FormatChoice::Best, profile: None, dry_run: None }
     }
 
     /// Selects one transferred path, rehearsed before it is transferred.
@@ -55,12 +40,7 @@ impl DownloadOptions {
     /// whole folder; the request is the same either way.
     #[must_use]
     pub const fn transfer() -> Self {
-        Self {
-            media_streams: None,
-            format: FormatChoice::Best,
-            profile: Some(SyncProfile::Copy),
-            dry_run: Some(true),
-        }
+        Self { media_streams: None, format: FormatChoice::Best, profile: Some(SyncProfile::Copy), dry_run: Some(true) }
     }
 
     /// Observes the way a path is transferred, and that a media item is transferred no way.
@@ -75,11 +55,7 @@ impl DownloadOptions {
     /// that claimed the line.
     #[must_use]
     pub const fn performer(&self) -> Performer {
-        if self.profile.is_some() {
-            Performer::Program
-        } else {
-            Performer::Retrieval
-        }
+        if self.profile.is_some() { Performer::Program } else { Performer::Retrieval }
     }
 
     /// Selects the way a path is transferred, for a request that transfers one.

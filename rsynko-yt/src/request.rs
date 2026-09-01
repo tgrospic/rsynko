@@ -10,12 +10,7 @@ pub trait YoutubeRequestAlg: YoutubeSorts {
     ///
     /// Youtube grants a catalog matching that claim: a request claiming no session and no player
     /// program is answered with the formats such a client may retrieve, or refused outright.
-    fn player_request(
-        &self,
-        id: impl Into<String>,
-        api_key: impl Into<String>,
-        claim: &PlayerClaim,
-    ) -> Self::Request;
+    fn player_request(&self, id: impl Into<String>, api_key: impl Into<String>, claim: &PlayerClaim) -> Self::Request;
     /// Defines player-program retrieval.
     fn player_program_request(&self, url: impl Into<String>) -> Self::Request;
     /// Defines direct-media retrieval.

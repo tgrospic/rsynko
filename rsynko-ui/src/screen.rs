@@ -28,13 +28,7 @@ pub trait ScreenSyntax {
     fn line(&self, runs: impl Iterator<Item = Self::Text>) -> Self::Line;
 
     /// States one line whose text is being edited in place, with its cursor.
-    fn edited_line(
-        &self,
-        prefix: impl Into<String>,
-        text: &str,
-        cursor: usize,
-        emphasis: Emphasis,
-    ) -> Self::Line;
+    fn edited_line(&self, prefix: impl Into<String>, text: &str, cursor: usize, emphasis: Emphasis) -> Self::Line;
 
     /// Composes lines into one row.
     fn row(&self, lines: impl Iterator<Item = Self::Line>) -> Self::Row;
@@ -51,12 +45,7 @@ pub trait ScreenSyntax {
     ) -> Self::Body;
 
     /// States one named message standing in for content there is none of yet.
-    fn message(
-        &self,
-        title: impl Into<String>,
-        message: impl Into<String>,
-        emphasis: Emphasis,
-    ) -> Self::Body;
+    fn message(&self, title: impl Into<String>, message: impl Into<String>, emphasis: Emphasis) -> Self::Body;
 
     /// States a named text draft under edit, with its cursor, what to write in it, and the
     /// shapes of what may be written.
@@ -154,30 +143,12 @@ pub const ARMED_MODE: &str = "\u{26A0}\u{FE0F} Real run — writes files";
 /// One line names one request. A line naming two ends names a transfer between them, which is
 /// how a whole transfer command reads as well.
 pub const SUBMISSION_EXAMPLES: [(&str, &str); 6] = [
-    (
-        "/home/dev/photos/2026",
-        "a folder here, into a folder of the same name",
-    ),
-    (
-        "backup@nas.local:/volume1/photos  /home/dev/photos",
-        "a folder on another machine, into a folder here",
-    ),
-    (
-        "/home/dev/photos  backup@nas.local:/volume1/photos",
-        "the same transfer, the other way around",
-    ),
-    (
-        "rsync -a nas.local:/srv/data /mnt/data",
-        "a whole command, read as the two ends it names",
-    ),
-    (
-        "https://www.youtube.com/watch?v=VIDEO_ID",
-        "a web address a source recognizes, fetched instead",
-    ),
-    (
-        "https://x.com/user/status/1234567890",
-        "a tweet, taking the media it carries",
-    ),
+    ("/home/dev/photos/2026", "a folder here, into a folder of the same name"),
+    ("backup@nas.local:/volume1/photos  /home/dev/photos", "a folder on another machine, into a folder here"),
+    ("/home/dev/photos  backup@nas.local:/volume1/photos", "the same transfer, the other way around"),
+    ("rsync -a nas.local:/srv/data /mnt/data", "a whole command, read as the two ends it names"),
+    ("https://www.youtube.com/watch?v=VIDEO_ID", "a web address a source recognizes, fetched instead"),
+    ("https://x.com/user/status/1234567890", "a tweet, taking the media it carries"),
 ];
 
 /// Composes every manager page from what the manager states about itself.
@@ -248,9 +219,7 @@ where
                     ActionAvailability::Disabled => Emphasis::Muted,
                 };
                 let separator = (index > 0).then(|| syntax.text("  ", Emphasis::Plain));
-                separator
-                    .into_iter()
-                    .chain([syntax.text(item.label(), emphasis)])
+                separator.into_iter().chain([syntax.text(item.label(), emphasis)])
             })
             .collect::<Vec<_>>();
         syntax.line(runs.into_iter())
@@ -288,19 +257,14 @@ where
                 .map_or_else(|| UNSTATED.to_owned(), Keystroke::label);
             let empty = syntax.row(
                 [syntax.line(
-                    [syntax.text(
-                        format!("  No sources. Press [{add}] to add or paste sources."),
-                        Emphasis::Plain,
-                    )]
-                    .into_iter(),
+                    [syntax.text(format!("  No sources. Press [{add}] to add or paste sources."), Emphasis::Plain)]
+                        .into_iter(),
                 )]
                 .into_iter(),
             );
             return syntax.rows(title, None, [empty].into_iter());
         }
-        let focused = self
-            .selected_queue_id()
-            .and_then(|selected| ids.iter().position(|id| *id == selected));
+        let focused = self.selected_queue_id().and_then(|selected| ids.iter().position(|id| *id == selected));
         let rows = ids
             .into_iter()
             .filter_map(|id| {
@@ -321,11 +285,7 @@ where
         Syntax: ScreenSyntax,
     {
         let selected = self.selected_queue_id() == Some(id);
-        let emphasis = if selected {
-            Emphasis::Selected
-        } else {
-            entry.phase().phase_emphasis()
-        };
+        let emphasis = if selected { Emphasis::Selected } else { entry.phase().phase_emphasis() };
         let marker = if selected { "▸" } else { " " };
         let tail = format!(
             " {:>3}% {:<width$} {:<12} {}",
@@ -338,10 +298,7 @@ where
         syntax.row(
             [syntax.line(
                 [
-                    syntax.text(
-                        format!("{marker} {} ", entry.phase().phase_marker()),
-                        emphasis,
-                    ),
+                    syntax.text(format!("{marker} {} ", entry.phase().phase_marker()), emphasis),
                     syntax.gauge(Gauge::of(entry.percent().unwrap_or(0), GAUGE_WIDTH)),
                     syntax.text(tail, emphasis),
                 ]
@@ -352,31 +309,18 @@ where
     }
 
     /// States everything one request holds, and everything that can be done to it.
-    fn expanded_row<Syntax>(
-        &self,
-        syntax: &Syntax,
-        id: This::Id,
-        entry: &This::Entry,
-    ) -> Syntax::Row
+    fn expanded_row<Syntax>(&self, syntax: &Syntax, id: This::Id, entry: &This::Entry) -> Syntax::Row
     where
         Syntax: ScreenSyntax,
     {
         let selected = self.selected_queue_id() == Some(id);
         let control = self.selected_detail_control();
-        let heading = if selected && control.is_none() {
-            Emphasis::Selected
-        } else {
-            Emphasis::Heading
-        };
+        let heading = if selected && control.is_none() { Emphasis::Selected } else { Emphasis::Heading };
         let percent = entry.percent().unwrap_or(0);
         let head = syntax.line(
             [
                 syntax.text(
-                    format!(
-                        "{} {} ",
-                        if selected { EXPANDED_MARK } else { " " },
-                        entry.phase().phase_marker()
-                    ),
+                    format!("{} {} ", if selected { EXPANDED_MARK } else { " " }, entry.phase().phase_marker()),
                     heading,
                 ),
                 syntax.gauge(Gauge::of(percent, GAUGE_WIDTH)),
@@ -392,11 +336,7 @@ where
             .into_iter(),
         );
         let offered = entry.detail_controls();
-        let mut lines = vec![
-            head,
-            self.input_line(syntax, id, entry),
-            self.output_line(syntax, id, entry),
-        ];
+        let mut lines = vec![head, self.input_line(syntax, id, entry), self.output_line(syntax, id, entry)];
         // What the choice is called depends on what is being chosen: one representation of a
         // media item, or one way of transferring a folder.
         if entry.performer() == Performer::Retrieval || entry.chosen_choice().is_some() {
@@ -475,24 +415,13 @@ where
         }
         // An input nothing may change is stated, not offered.
         if entry.detail_controls().contains(&DetailControl::Input) {
-            return control_line(
-                syntax,
-                DetailControl::Input,
-                label,
-                entry.source(),
-                self.selected_detail_control(),
-            );
+            return control_line(syntax, DetailControl::Input, label, entry.source(), self.selected_detail_control());
         }
         field_line(syntax, label, entry.source())
     }
 
     /// States where the request will be published, or the draft renaming it.
-    fn output_line<Syntax>(
-        &self,
-        syntax: &Syntax,
-        id: This::Id,
-        entry: &This::Entry,
-    ) -> Syntax::Line
+    fn output_line<Syntax>(&self, syntax: &Syntax, id: This::Id, entry: &This::Entry) -> Syntax::Line
     where
         Syntax: ScreenSyntax,
     {
@@ -510,17 +439,8 @@ where
         let output = entry
             .transfer_destination()
             .or_else(|| entry.output())
-            .map_or_else(
-                || "derived from media ID".to_owned(),
-                |path| path.display().to_string(),
-            );
-        control_line(
-            syntax,
-            DetailControl::Output,
-            end_labels(entry.output_naming()).1,
-            output,
-            control,
-        )
+            .map_or_else(|| "derived from media ID".to_owned(), |path| path.display().to_string());
+        control_line(syntax, DetailControl::Output, end_labels(entry.output_naming()).1, output, control)
     }
 
     /// States what the request chose: what it is called, and what choosing it does.
@@ -537,18 +457,10 @@ where
                 String::new(),
             );
         };
-        entry
-            .described_formats()
-            .find(|format| format.format_identity() == fixed)
-            .map_or_else(
-                || {
-                    (
-                        fixed.to_owned(),
-                        entry.choice_summary(fixed).unwrap_or_default().to_owned(),
-                    )
-                },
-                |format| (format.format_label(), String::new()),
-            )
+        entry.described_formats().find(|format| format.format_identity() == fixed).map_or_else(
+            || (fixed.to_owned(), entry.choice_summary(fixed).unwrap_or_default().to_owned()),
+            |format| (format.format_label(), String::new()),
+        )
     }
 
     /// States the whole command one request would run, and nothing else.
@@ -556,22 +468,16 @@ where
     where
         Syntax: ScreenSyntax,
     {
-        self.queue_entry(id)
-            .and_then(QueueEntryAlg::stated_command)
-            .map_or_else(
-                || syntax.message("Command", "This request runs no command", Emphasis::Muted),
-                |command| syntax.verbatim(command),
-            )
+        self.queue_entry(id).and_then(QueueEntryAlg::stated_command).map_or_else(
+            || syntax.message("Command", "This request runs no command", Emphasis::Muted),
+            |command| syntax.verbatim(command),
+        )
     }
 
     /// States what a transfer has moved and how quickly, in one phrase.
     fn transfer_summary_text(&self, entry: &This::Entry) -> String {
         let speed = speed_text(entry);
-        if speed == UNSTATED {
-            progress_text(entry)
-        } else {
-            format!("{}  {speed}", progress_text(entry))
-        }
+        if speed == UNSTATED { progress_text(entry) } else { format!("{}  {speed}", progress_text(entry)) }
     }
 
     /// States the choices one request offers: the roles first, then everything discovered.
@@ -587,11 +493,7 @@ where
         let discovered = entry.performer() == Performer::Retrieval;
         match entry.discovery() {
             DiscoveryState::Unrequested | DiscoveryState::Waiting if discovered => {
-                return syntax.message(
-                    "Formats",
-                    "Waiting to inspect source formats…",
-                    Emphasis::Plain,
-                );
+                return syntax.message("Formats", "Waiting to inspect source formats…", Emphasis::Plain);
             }
             DiscoveryState::Inspecting if discovered => {
                 return syntax.message("Formats", "Inspecting source formats…", Emphasis::Plain);
@@ -615,41 +517,21 @@ where
                 .chain(entry.described_formats().map(FormatLabelExt::format_label))
                 .collect::<Vec<_>>()
         } else {
-            entry
-                .selectable_choices()
-                .map(|choice| choice_text(entry, choice))
-                .collect::<Vec<_>>()
+            entry.selectable_choices().map(|choice| choice_text(entry, choice)).collect::<Vec<_>>()
         };
         let chosen = self.chosen_choice_row(entry, discovered);
-        let rows =
-            offered
-                .into_iter()
-                .enumerate()
-                .map(|(index, label)| {
-                    let selected = index == chosen;
-                    let marker = if selected {
-                        format!("{CURSOR_MARK} ")
-                    } else {
-                        "  ".to_owned()
-                    };
-                    let emphasis = if selected {
-                        Emphasis::Selected
-                    } else {
-                        Emphasis::Plain
-                    };
-                    syntax.row(
-                        [syntax
-                            .line([syntax.text(format!("{marker}{label}"), emphasis)].into_iter())]
-                        .into_iter(),
-                    )
-                })
-                .collect::<Vec<_>>();
+        let rows = offered
+            .into_iter()
+            .enumerate()
+            .map(|(index, label)| {
+                let selected = index == chosen;
+                let marker = if selected { format!("{CURSOR_MARK} ") } else { "  ".to_owned() };
+                let emphasis = if selected { Emphasis::Selected } else { Emphasis::Plain };
+                syntax.row([syntax.line([syntax.text(format!("{marker}{label}"), emphasis)].into_iter())].into_iter())
+            })
+            .collect::<Vec<_>>();
 
-        syntax.rows(
-            format!("{} ({})", choice_label(entry.performer()), rows.len()),
-            Some(chosen),
-            rows.into_iter(),
-        )
+        syntax.rows(format!("{} ({})", choice_label(entry.performer()), rows.len()), Some(chosen), rows.into_iter())
     }
 
     /// States which offered row the request's current choice rests on.
@@ -661,16 +543,9 @@ where
                 .position(|streams| Some(streams) == entry.media_streams())
                 .unwrap_or(0);
         };
-        let stated = entry
-            .selectable_choices()
-            .position(|choice| choice == fixed)
-            .unwrap_or(0);
+        let stated = entry.selectable_choices().position(|choice| choice == fixed).unwrap_or(0);
         // A media item states its roles before its representations; a folder states no roles.
-        if discovered {
-            stated + entry.offered_streams().len()
-        } else {
-            stated
-        }
+        if discovered { stated + entry.offered_streams().len() } else { stated }
     }
 
     /// States what the rehearsal said one request would do.
@@ -707,9 +582,7 @@ where
             "Enter or paste one source per line…",
             text,
             cursor,
-            SUBMISSION_EXAMPLES
-                .into_iter()
-                .map(|(shape, means)| ((*shape).to_owned(), (*means).to_owned())),
+            SUBMISSION_EXAMPLES.into_iter().map(|(shape, means)| ((*shape).to_owned(), (*means).to_owned())),
         )
     }
 }
@@ -723,18 +596,10 @@ where
 {
     match entry.rehearsal() {
         RehearsalState::Unrehearsed => {
-            return syntax.message(
-                "Report",
-                "This request has not been rehearsed yet.",
-                Emphasis::Plain,
-            );
+            return syntax.message("Report", "This request has not been rehearsed yet.", Emphasis::Plain);
         }
         RehearsalState::Rehearsing => {
-            return syntax.message(
-                "Report",
-                "Stating what the transfer would do…",
-                Emphasis::Plain,
-            );
+            return syntax.message("Report", "Stating what the transfer would do…", Emphasis::Plain);
         }
         RehearsalState::Failed(message) => {
             return syntax.message("Rehearsal failed", message, Emphasis::Failed);
@@ -744,10 +609,7 @@ where
     let mut changes = entry.planned_changes().collect::<Vec<_>>();
     // What the transfer would alter is read first; what it would leave stands under it.
     changes.sort_by_key(|change| usize::from(!change.change_kind().alters()));
-    let altered = changes
-        .iter()
-        .filter(|change| change.change_kind().alters())
-        .count();
+    let altered = changes.iter().filter(|change| change.change_kind().alters()).count();
     let rows = changes
         .iter()
         .map(|change| {
@@ -759,9 +621,7 @@ where
                             "  {} {:<9} {:>10}  {}",
                             kind.change_marker(),
                             kind.change_label(),
-                            change
-                                .change_size()
-                                .map_or_else(|| UNSTATED.to_owned(), bytes_label),
+                            change.change_size().map_or_else(|| UNSTATED.to_owned(), bytes_label),
                             change.change_path()
                         ),
                         kind.change_emphasis(),
@@ -772,11 +632,7 @@ where
             )
         })
         .collect::<Vec<_>>();
-    syntax.rows(
-        format!("Report ({altered} of {} would change)", changes.len()),
-        None,
-        rows.into_iter(),
-    )
+    syntax.rows(format!("Report ({altered} of {} would change)", changes.len()), None, rows.into_iter())
 }
 
 /// States one field naming a value nothing can be done to.
@@ -786,10 +642,7 @@ where
 {
     syntax.line(
         [
-            syntax.text(
-                format!("    {label:<FIELD_LABEL_COLUMNS$}"),
-                Emphasis::Label,
-            ),
+            syntax.text(format!("    {label:<FIELD_LABEL_COLUMNS$}"), Emphasis::Label),
             syntax.text(value, Emphasis::Plain),
         ]
         .into_iter(),
@@ -803,10 +656,7 @@ where
 {
     syntax.line(
         [
-            syntax.text(
-                format!("    {:<FIELD_LABEL_COLUMNS$}", "Error"),
-                Emphasis::Failed,
-            ),
+            syntax.text(format!("    {:<FIELD_LABEL_COLUMNS$}", "Error"), Emphasis::Failed),
             syntax.text(failure, Emphasis::Failed),
         ]
         .into_iter(),
@@ -834,13 +684,7 @@ where
         (false, DetailControl::Log) => Emphasis::Muted,
         (false, _) => Emphasis::Plain,
     };
-    syntax.line(
-        [syntax.text(
-            format!("{}{}", field_prefix(chosen, label), value.into()),
-            emphasis,
-        )]
-        .into_iter(),
-    )
+    syntax.line([syntax.text(format!("{}{}", field_prefix(chosen, label), value.into()), emphasis)].into_iter())
 }
 
 /// States one editable control whose value names a choice and then says what choosing it does.
@@ -865,10 +709,7 @@ where
     } else {
         (Emphasis::Plain, Emphasis::Label, Emphasis::Muted)
     };
-    let mut runs = vec![
-        syntax.text(field_prefix(chosen, label), field),
-        syntax.text(choice, name),
-    ];
+    let mut runs = vec![syntax.text(field_prefix(chosen, label), field), syntax.text(choice, name)];
     if !summary.is_empty() {
         runs.push(syntax.text(format!(" {summary}"), rest));
     }
@@ -895,13 +736,8 @@ where
         (DetailControl::DryRun, Some(false) | None) => (ARMED_MODE, Emphasis::Caution),
         (control, _) => (control.control_label(), Emphasis::Plain),
     };
-    let emphasis = if chosen {
-        Emphasis::Selected
-    } else {
-        consequence
-    };
-    syntax
-        .line([syntax.text(format!("  {} [{label}]", cursor_marker(chosen)), emphasis)].into_iter())
+    let emphasis = if chosen { Emphasis::Selected } else { consequence };
+    syntax.line([syntax.text(format!("  {} [{label}]", cursor_marker(chosen)), emphasis)].into_iter())
 }
 
 /// States what a rehearsal found, counted by what it would do.
@@ -918,18 +754,11 @@ where
             let counted = ChangeKind::REPORTED
                 .into_iter()
                 .filter_map(|kind| {
-                    let count = entry
-                        .planned_changes()
-                        .filter(|change| change.change_kind() == kind)
-                        .count();
+                    let count = entry.planned_changes().filter(|change| change.change_kind() == kind).count();
                     (count > 0).then(|| format!("{count} {}", kind.change_label()))
                 })
                 .collect::<Vec<_>>();
-            if counted.is_empty() {
-                "nothing to transfer".to_owned()
-            } else {
-                counted.join(", ")
-            }
+            if counted.is_empty() { "nothing to transfer".to_owned() } else { counted.join(", ") }
         }
     }
 }
@@ -963,10 +792,9 @@ fn choice_text<Entry>(entry: &Entry, choice: &str) -> String
 where
     Entry: RequestOptionsAlg,
 {
-    entry.choice_summary(choice).map_or_else(
-        || choice.to_owned(),
-        |summary| format!("{choice:<CHOICE_KEY_COLUMNS$} {summary}"),
-    )
+    entry
+        .choice_summary(choice)
+        .map_or_else(|| choice.to_owned(), |summary| format!("{choice:<CHOICE_KEY_COLUMNS$} {summary}"))
 }
 
 /// States whether the cursor rests here.
@@ -983,11 +811,7 @@ where
     Entry: TransferViewAlg,
 {
     match entry.transfer_total() {
-        Some(total) => format!(
-            "{} / {}",
-            bytes_label(entry.transferred()),
-            bytes_label(total)
-        ),
+        Some(total) => format!("{} / {}", bytes_label(entry.transferred()), bytes_label(total)),
         None if entry.transferred() > 0 => {
             format!("{} downloaded", bytes_label(entry.transferred()))
         }
@@ -1000,10 +824,7 @@ fn speed_text<Entry>(entry: &Entry) -> String
 where
     Entry: TransferViewAlg,
 {
-    entry.bytes_per_second().map_or_else(
-        || UNSTATED.to_owned(),
-        |speed| format!("{}/s", bytes_label(speed)),
-    )
+    entry.bytes_per_second().map_or_else(|| UNSTATED.to_owned(), |speed| format!("{}/s", bytes_label(speed)))
 }
 
 /// States how long the transfer still needs.
@@ -1011,7 +832,5 @@ fn estimate_text<Entry>(entry: &Entry) -> String
 where
     Entry: TransferViewAlg,
 {
-    entry
-        .estimated_remaining()
-        .map_or_else(|| UNSTATED.to_owned(), duration_label)
+    entry.estimated_remaining().map_or_else(|| UNSTATED.to_owned(), duration_label)
 }

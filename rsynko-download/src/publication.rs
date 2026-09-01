@@ -21,11 +21,7 @@ pub trait AtomicPublishAlg {
     /// # Errors
     ///
     /// Returns the interpreter-specific publication error.
-    fn write_publication(
-        &self,
-        publication: &mut Self::Publication,
-        bytes: &[u8],
-    ) -> Result<(), Self::Error>;
+    fn write_publication(&self, publication: &mut Self::Publication, bytes: &[u8]) -> Result<(), Self::Error>;
 
     /// Atomically makes a complete publication observable at its final destination.
     ///

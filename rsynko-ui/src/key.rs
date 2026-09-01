@@ -79,21 +79,13 @@ impl Keystroke {
     /// Denotes one unmodified key press.
     #[must_use]
     pub const fn plain(key: Key) -> Self {
-        Self {
-            key,
-            control: false,
-            alternate: false,
-        }
+        Self { key, control: false, alternate: false }
     }
 
     /// Denotes one key press with the control modifier held.
     #[must_use]
     pub const fn control(key: Key) -> Self {
-        Self {
-            key,
-            control: true,
-            alternate: false,
-        }
+        Self { key, control: true, alternate: false }
     }
 
     /// Observes whether any modifier was held.
@@ -106,11 +98,7 @@ impl Keystroke {
     #[must_use]
     pub fn label(self) -> String {
         // A modified character names itself in upper case, the way keyboards print it.
-        let key = if self.modified() {
-            self.key.label().to_uppercase()
-        } else {
-            self.key.label()
-        };
+        let key = if self.modified() { self.key.label().to_uppercase() } else { self.key.label() };
         match (self.control, self.alternate) {
             (false, false) => key,
             (true, false) => format!("Ctrl+{key}"),

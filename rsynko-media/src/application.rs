@@ -85,22 +85,13 @@ where
         selection: &This::Selection,
         target: &OutputTarget,
     ) -> Result<PathBuf, MediaDownloadError<FetchError, PublishError>> {
-        let media = self
-            .as_media(extraction)
-            .ok_or(MediaDownloadError::NotSingleMedia)?;
-        let formats = self
-            .select_formats(self.media_formats(&media), selection)
-            .ok_or(MediaDownloadError::NoMatchingFormat)?;
-        let format = formats
-            .into_iter()
-            .exactly_one()
-            .map_err(|_| MediaDownloadError::MultipleFormats)?;
+        let media = self.as_media(extraction).ok_or(MediaDownloadError::NotSingleMedia)?;
+        let formats =
+            self.select_formats(self.media_formats(&media), selection).ok_or(MediaDownloadError::NoMatchingFormat)?;
+        let format = formats.into_iter().exactly_one().map_err(|_| MediaDownloadError::MultipleFormats)?;
         let destination = self.media_output_path(&media, format, target);
-        let source = self
-            .format_source(format)
-            .ok_or(MediaDownloadError::UnlocatableFormat)?;
-        self.download_resource(&source, &destination)
-            .map_err(MediaDownloadError::Download)?;
+        let source = self.format_source(format).ok_or(MediaDownloadError::UnlocatableFormat)?;
+        self.download_resource(&source, &destination).map_err(MediaDownloadError::Download)?;
         Ok(destination)
     }
 }
@@ -135,11 +126,8 @@ where
         selection: &This::Selection,
         target: &OutputTarget,
     ) -> Result<PathBuf, ApplicationError<ExtractionError, FetchError, PublishError>> {
-        let extraction = self
-            .extract_url(url)
-            .map_err(ApplicationError::Extraction)?;
-        self.download_extraction(extraction, selection, target)
-            .map_err(ApplicationError::Media)
+        let extraction = self.extract_url(url).map_err(ApplicationError::Extraction)?;
+        self.download_extraction(extraction, selection, target).map_err(ApplicationError::Media)
     }
 }
 
@@ -150,18 +138,10 @@ where
     This: MediaViewAlg + FormatViewAlg,
 {
     /// Defines the final path one media item publishes its selected format at.
-    fn media_output_path(
-        &self,
-        media: &This::Media,
-        format: &This::Format,
-        target: &OutputTarget,
-    ) -> PathBuf {
+    fn media_output_path(&self, media: &This::Media, format: &This::Format, target: &OutputTarget) -> PathBuf {
         match target {
             OutputTarget::Path(path) => path.clone(),
-            OutputTarget::MediaId => media_id_path(
-                self.media_id(media),
-                self.format_text(format, FORMAT_EXTENSION),
-            ),
+            OutputTarget::MediaId => media_id_path(self.media_id(media), self.format_text(format, FORMAT_EXTENSION)),
             OutputTarget::Title => crate::portable_file_name(
                 self.media_title(media),
                 self.media_id(media),

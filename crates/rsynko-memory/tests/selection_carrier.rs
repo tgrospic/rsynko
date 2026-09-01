@@ -55,10 +55,7 @@ impl FormatSelectionAlg for CountSyntax {
     fn merge_formats(&self, values: impl IntoIterator<Item = Self::Selection>) -> Self::Selection {
         values.into_iter().sum::<usize>() + 1
     }
-    fn fallback_formats(
-        &self,
-        values: impl IntoIterator<Item = Self::Selection>,
-    ) -> Self::Selection {
+    fn fallback_formats(&self, values: impl IntoIterator<Item = Self::Selection>) -> Self::Selection {
         values.into_iter().sum::<usize>() + 1
     }
 }
@@ -71,14 +68,8 @@ fn preferred_progressive_is_a_representation_independent_program() {
         FormatSelection::Fallback(vec![
             FormatSelection::Best(FormatPredicate::Id("18".to_owned())),
             FormatSelection::Best(FormatPredicate::All(
-                Box::new(FormatPredicate::Flag {
-                    key: FORMAT_HAS_AUDIO.to_owned(),
-                    value: true,
-                }),
-                Box::new(FormatPredicate::Flag {
-                    key: FORMAT_HAS_VIDEO.to_owned(),
-                    value: true,
-                }),
+                Box::new(FormatPredicate::Flag { key: FORMAT_HAS_AUDIO.to_owned(), value: true }),
+                Box::new(FormatPredicate::Flag { key: FORMAT_HAS_VIDEO.to_owned(), value: true }),
             )),
         ])
     );

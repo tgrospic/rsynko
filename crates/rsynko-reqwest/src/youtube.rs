@@ -24,12 +24,7 @@ impl YoutubeRequestAlg for RuntimeEnvironment {
         YoutubeRequestSyntax.watch_request(url)
     }
 
-    fn player_request(
-        &self,
-        id: impl Into<String>,
-        api_key: impl Into<String>,
-        claim: &PlayerClaim,
-    ) -> Self::Request {
+    fn player_request(&self, id: impl Into<String>, api_key: impl Into<String>, claim: &PlayerClaim) -> Self::Request {
         YoutubeRequestSyntax.player_request(id, api_key, claim)
     }
 
@@ -174,18 +169,9 @@ impl YoutubeResponseAlg for RuntimeEnvironment {
     fn decode_youtube_player(&self, bytes: &[u8]) -> Result<YoutubePlayer, Self::Error> {
         let player: Value = serde_json::from_slice(bytes)?;
         Ok(YoutubePlayer {
-            status: player
-                .pointer("/playabilityStatus/status")
-                .and_then(Value::as_str)
-                .map(str::to_owned),
-            reason: player
-                .pointer("/playabilityStatus/reason")
-                .and_then(Value::as_str)
-                .map(str::to_owned),
-            title: player
-                .pointer("/videoDetails/title")
-                .and_then(Value::as_str)
-                .map(str::to_owned),
+            status: player.pointer("/playabilityStatus/status").and_then(Value::as_str).map(str::to_owned),
+            reason: player.pointer("/playabilityStatus/reason").and_then(Value::as_str).map(str::to_owned),
+            title: player.pointer("/videoDetails/title").and_then(Value::as_str).map(str::to_owned),
             formats: direct_formats(&player),
             unreadable: unreadable_formats(&player),
         })
@@ -193,12 +179,10 @@ impl YoutubeResponseAlg for RuntimeEnvironment {
 }
 
 fn player_response(page: &str) -> Option<Value> {
-    ["ytInitialPlayerResponse =", "ytInitialPlayerResponse="]
-        .into_iter()
-        .find_map(|marker| {
-            let tail = page.get(page.find(marker)? + marker.len()..)?;
-            serde_json::from_str(balanced_object(tail)?).ok()
-        })
+    ["ytInitialPlayerResponse =", "ytInitialPlayerResponse="].into_iter().find_map(|marker| {
+        let tail = page.get(page.find(marker)? + marker.len()..)?;
+        serde_json::from_str(balanced_object(tail)?).ok()
+    })
 }
 
 fn quoted_config<'a>(page: &'a str, key: &str) -> Option<&'a str> {
@@ -240,11 +224,7 @@ fn balanced_object(input: &str) -> Option<&str> {
 
 impl YoutubeUrlAlg for RuntimeEnvironment {
     fn throttle_challenge(&self, url: &str) -> Option<String> {
-        Url::parse(url)
-            .ok()?
-            .query_pairs()
-            .find(|(key, _)| key == "n")
-            .map(|(_, value)| value.into_owned())
+        Url::parse(url).ok()?.query_pairs().find(|(key, _)| key == "n").map(|(_, value)| value.into_owned())
     }
 
     fn with_throttle(&self, url: &str, solution: &str) -> String {
@@ -283,16 +263,8 @@ impl YoutubeChallengeAlg for RuntimeEnvironment {
 }
 
 impl YoutubeSolutionAlg for RuntimeEnvironment {
-    fn solution_of(
-        &self,
-        solutions: &Self::Solutions,
-        challenge: &YoutubeChallenge,
-    ) -> Option<String> {
-        solutions
-            .0
-            .iter()
-            .find(|(posed, _)| posed == challenge)
-            .map(|(_, solution)| solution.clone())
+    fn solution_of(&self, solutions: &Self::Solutions, challenge: &YoutubeChallenge) -> Option<String> {
+        solutions.0.iter().find(|(posed, _)| posed == challenge).map(|(_, solution)| solution.clone())
     }
 }
 
@@ -305,25 +277,17 @@ fn replaced_query(url: &str, key: &str, value: &str) -> String {
         .filter(|(name, _)| name != key)
         .map(|(name, value)| (name.into_owned(), value.into_owned()))
         .collect();
-    parsed
-        .query_pairs_mut()
-        .clear()
-        .extend_pairs(kept)
-        .append_pair(key, value);
+    parsed.query_pairs_mut().clear().extend_pairs(kept).append_pair(key, value);
     parsed.into()
 }
 
 fn direct_formats(player: &Value) -> Vec<YoutubeFormat> {
-    described_formats(player)
-        .filter_map(direct_format)
-        .collect()
+    described_formats(player).filter_map(direct_format).collect()
 }
 
 /// Counts the described formats this interpreter could not read.
 fn unreadable_formats(player: &Value) -> usize {
-    described_formats(player)
-        .filter(|value| direct_format(value).is_none())
-        .count()
+    described_formats(player).filter(|value| direct_format(value).is_none()).count()
 }
 
 /// Observes every format the response described, muxed and adaptive alike.
@@ -360,9 +324,8 @@ fn direct_format(value: &Value) -> Option<YoutubeFormat> {
     let source = format_source(value)?;
     let mime = value.get("mimeType")?.as_str()?;
     let has_video = mime.starts_with("video/");
-    let has_audio = mime.starts_with("audio/")
-        || value.get("audioQuality").is_some()
-        || value.get("audioSampleRate").is_some();
+    let has_audio =
+        mime.starts_with("audio/") || value.get("audioQuality").is_some() || value.get("audioSampleRate").is_some();
     if !has_audio && !has_video {
         return None;
     }
@@ -372,23 +335,12 @@ fn direct_format(value: &Value) -> Option<YoutubeFormat> {
         extension: mime.split('/').nth(1)?.split(';').next().map(str::to_owned),
         has_audio,
         has_video,
-        quality: value
-            .get("qualityLabel")
-            .or_else(|| value.get("quality"))
-            .and_then(Value::as_str)
-            .map(str::to_owned),
+        quality: value.get("qualityLabel").or_else(|| value.get("quality")).and_then(Value::as_str).map(str::to_owned),
         width: value.get("width").and_then(Value::as_i64),
         height: value.get("height").and_then(Value::as_i64),
         bitrate: value.get("bitrate").and_then(Value::as_i64),
-        content_length: value
-            .get("contentLength")
-            .and_then(Value::as_str)
-            .and_then(|length| length.parse().ok()),
-        codecs: mime
-            .split("codecs=\"")
-            .nth(1)
-            .and_then(|tail| tail.split('"').next())
-            .map(str::to_owned),
+        content_length: value.get("contentLength").and_then(Value::as_str).and_then(|length| length.parse().ok()),
+        codecs: mime.split("codecs=\"").nth(1).and_then(|tail| tail.split('"').next()).map(str::to_owned),
     })
 }
 
@@ -401,9 +353,5 @@ fn player_program_url(page: &str) -> Option<String> {
             tail.get(..tail.find('"')?)
         })?
         .replace("\\/", "/");
-    Some(if stated.starts_with('/') {
-        format!("https://www.youtube.com{stated}")
-    } else {
-        stated
-    })
+    Some(if stated.starts_with('/') { format!("https://www.youtube.com{stated}") } else { stated })
 }

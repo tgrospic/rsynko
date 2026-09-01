@@ -16,12 +16,7 @@ pub trait FormatPredicateAlg: MediaSorts {
     /// Defines the predicate accepting one stated truth.
     fn flag_format(&self, key: impl Into<String>, value: bool) -> Self::Predicate;
     /// Defines the predicate comparing one numeric observation.
-    fn number_format(
-        &self,
-        key: impl Into<String>,
-        comparison: FormatComparison,
-        value: f64,
-    ) -> Self::Predicate;
+    fn number_format(&self, key: impl Into<String>, comparison: FormatComparison, value: f64) -> Self::Predicate;
     /// Defines conjunction.
     fn all_formats(&self, left: Self::Predicate, right: Self::Predicate) -> Self::Predicate;
     /// Defines negation.
@@ -36,15 +31,9 @@ pub trait FormatSelectionAlg: MediaSorts {
     /// Defines selection of the least preferred matching format.
     fn worst_format(&self, predicate: Self::Predicate) -> Self::Selection;
     /// Defines ordered combination requiring every child selection.
-    fn merge_formats(
-        &self,
-        selections: impl IntoIterator<Item = Self::Selection>,
-    ) -> Self::Selection;
+    fn merge_formats(&self, selections: impl IntoIterator<Item = Self::Selection>) -> Self::Selection;
     /// Defines left-biased choice of the first successful child selection.
-    fn fallback_formats(
-        &self,
-        selections: impl IntoIterator<Item = Self::Selection>,
-    ) -> Self::Selection;
+    fn fallback_formats(&self, selections: impl IntoIterator<Item = Self::Selection>) -> Self::Selection;
 }
 
 /// Denotes how an observed number is compared against a stated one.
@@ -157,9 +146,6 @@ where
 
     /// Defines an exact format with a progressive fallback.
     fn preferred_progressive_format(&self, id: impl Into<String>) -> This::Selection {
-        self.fallback_formats([
-            self.best_format(self.format_id(id)),
-            self.best_progressive_format(),
-        ])
+        self.fallback_formats([self.best_format(self.format_id(id)), self.best_progressive_format()])
     }
 }

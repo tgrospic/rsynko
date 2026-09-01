@@ -62,9 +62,7 @@ where
             Some(choice) => self.format_id(choice),
             // A request choosing no media role is not one this program retrieves, so it asks for
             // the whole thing and lets selection refuse it.
-            None => {
-                self.stream_role_format(options.media_streams().unwrap_or(MediaStreams::AudioVideo))
-            }
+            None => self.stream_role_format(options.media_streams().unwrap_or(MediaStreams::AudioVideo)),
         };
         self.best_format(predicate)
     }

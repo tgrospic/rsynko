@@ -57,10 +57,7 @@ impl FormatAlg for CountSyntax {
 #[test]
 fn metadata_construction_does_not_fix_record_representation() {
     let syntax = MediaSyntax.text_metadata("title", "Example");
-    assert_eq!(
-        syntax.get("title"),
-        Some(&InfoValue::String("Example".to_owned()))
-    );
+    assert_eq!(syntax.get("title"), Some(&InfoValue::String("Example".to_owned())));
     assert_eq!(CountSyntax.text_metadata("title", "Example"), 1);
 }
 

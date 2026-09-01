@@ -65,10 +65,7 @@ impl ReferenceProcessor {
     /// Constructs a deterministic artifact transformation.
     #[must_use]
     pub fn new(id: impl Into<String>, transform: ReferenceArtifactTransform) -> Self {
-        Self {
-            id: ProcessorId::new(id),
-            transform,
-        }
+        Self { id: ProcessorId::new(id), transform }
     }
 }
 
@@ -100,11 +97,7 @@ impl ReferenceProcessorEnv {
     /// Constructs a processing environment with initial artifacts.
     #[must_use]
     pub fn new(artifacts: ArtifactSet) -> Self {
-        Self {
-            artifacts,
-            processors: BTreeMap::default(),
-            trace: Vec::default(),
-        }
+        Self { artifacts, processors: BTreeMap::default(), trace: Vec::default() }
     }
 
     /// Registers a processor by semantic identity.
@@ -142,12 +135,11 @@ impl ProcessingApplyAlg for ReferenceProcessorEnv {
         match &processor.transform {
             ReferenceArtifactTransform::Identity => {}
             ReferenceArtifactTransform::Move { artifact, path } => {
-                let item = self.artifacts.get_mut(artifact).ok_or_else(|| {
-                    ReferenceProcessingError::ProcessorFailed {
+                let item =
+                    self.artifacts.get_mut(artifact).ok_or_else(|| ReferenceProcessingError::ProcessorFailed {
                         processor: step.processor.clone(),
                         message: format!("missing artifact {artifact}"),
-                    }
-                })?;
+                    })?;
                 item.metadata.insert(ARTIFACT_LOCATION, path.clone());
             }
             ReferenceArtifactTransform::Fail(message) => {

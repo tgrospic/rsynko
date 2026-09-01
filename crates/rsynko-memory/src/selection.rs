@@ -1,7 +1,4 @@
-use crate::{
-    Format, FormatPredicate, FormatSelection, InfoRecord, InfoValue, interpret_selection,
-    predicate_accepts,
-};
+use crate::{Format, FormatPredicate, FormatSelection, InfoRecord, InfoValue, interpret_selection, predicate_accepts};
 use rsynko_media::{FormatPredicateMatchAlg, FormatSelectionApplyAlg, FormatViewAlg, MediaSorts};
 
 /// Interprets format predicates and selection programs over the reified media sorts.
@@ -34,11 +31,7 @@ impl FormatPredicateMatchAlg for ReferenceFormatSelector {
 }
 
 impl FormatSelectionApplyAlg for ReferenceFormatSelector {
-    fn select_formats<'a>(
-        &self,
-        formats: &'a [Format],
-        selection: &FormatSelection,
-    ) -> Option<Vec<&'a Format>> {
+    fn select_formats<'a>(&self, formats: &'a [Format], selection: &FormatSelection) -> Option<Vec<&'a Format>> {
         interpret_selection(self, formats, selection)
     }
 }

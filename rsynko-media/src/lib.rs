@@ -12,33 +12,28 @@ mod selection;
 mod sorts;
 
 pub use application::{
-    ApplicationError, ApplicationExt, FormatSourceAlg, MediaDownloadError, MediaDownloadExt,
-    MediaOutputExt, OutputTarget,
+    ApplicationError, ApplicationExt, FormatSourceAlg, MediaDownloadError, MediaDownloadExt, MediaOutputExt,
+    OutputTarget,
 };
 pub use artifact::{ARTIFACT_LOCATION, ArtifactAlg, ArtifactKind};
 pub use extraction::{
-    CollectionKind, ExtractUrlError, ExtractionAlg, ExtractionApplyAlg, ExtractionCatalogAlg,
-    ExtractionExt, ExtractionViewAlg, MediaViewAlg,
+    CollectionKind, ExtractUrlError, ExtractionAlg, ExtractionApplyAlg, ExtractionCatalogAlg, ExtractionExt,
+    ExtractionViewAlg, MediaViewAlg,
 };
-pub use format::{
-    FORMAT_EXTENSION, FORMAT_HAS_AUDIO, FORMAT_HAS_VIDEO, FORMAT_SOURCE, FormatAlg, FormatViewAlg,
-};
+pub use format::{FORMAT_EXTENSION, FORMAT_HAS_AUDIO, FORMAT_HAS_VIDEO, FORMAT_SOURCE, FormatAlg, FormatViewAlg};
 pub use laws::{
-    ArtifactLaws, ExtractionLawFixture, ExtractionLaws, FormatLaws, MediaProgramLawFixture,
-    MediaProgramLaws, ObservationLaws, OutputNameLaws, ProcessingApplicationLaws,
-    ProcessingLawFixture, ProcessingLaws, SelectionLaws,
+    ArtifactLaws, ExtractionLawFixture, ExtractionLaws, FormatLaws, MediaProgramLawFixture, MediaProgramLaws,
+    ObservationLaws, OutputNameLaws, ProcessingApplicationLaws, ProcessingLawFixture, ProcessingLaws, SelectionLaws,
 };
 pub use observation::{MetadataAlg, MetadataExt, MetadataViewAlg};
-pub use output::{
-    OutputNameAlg, OutputNameExt, portable_file_name, portable_file_stem, portable_user_file_name,
-};
+pub use output::{OutputNameAlg, OutputNameExt, portable_file_name, portable_file_stem, portable_user_file_name};
 pub use processing::{
-    ProcessingApplyAlg, ProcessingExt, ProcessingProgramAlg, ProcessingProgramExt,
-    ProcessingProgramViewAlg, ProcessingStage,
+    ProcessingApplyAlg, ProcessingExt, ProcessingProgramAlg, ProcessingProgramExt, ProcessingProgramViewAlg,
+    ProcessingStage,
 };
 pub use selection::{
-    FormatComparison, FormatPredicateAlg, FormatPredicateExt, FormatPredicateMatchAlg,
-    FormatSelectionAlg, FormatSelectionApplyAlg, FormatSelectionProgramExt,
+    FormatComparison, FormatPredicateAlg, FormatPredicateExt, FormatPredicateMatchAlg, FormatSelectionAlg,
+    FormatSelectionApplyAlg, FormatSelectionProgramExt,
 };
 pub use sorts::{MediaSorts, ProcessingSorts};
 

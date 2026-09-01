@@ -32,10 +32,7 @@ impl ProcessingProgramAlg for CountSyntax {
 #[test]
 fn sequential_construction_has_a_neutral_program_for_multiple_interpreters() {
     let counted = CountSyntax.process_with(ProcessingStage::BeforeDownload, "prepare");
-    assert_eq!(
-        CountSyntax.then_processing(CountSyntax.empty_processing(), counted),
-        1
-    );
+    assert_eq!(CountSyntax.then_processing(CountSyntax.empty_processing(), counted), 1);
 
     let program = ProcessingSyntax.process_with(ProcessingStage::BeforeDownload, "prepare");
     let composed = ProcessingSyntax.then_processing(ProcessingSyntax.empty_processing(), program);

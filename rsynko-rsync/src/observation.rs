@@ -7,12 +7,7 @@ use rsynko_manager::ChangeKind;
 #[delegatable_trait]
 pub trait SyncChangeAlg: RsyncSorts {
     /// Defines one change from the path it names, what happens to it, and what it moves.
-    fn sync_change(
-        &self,
-        path: impl Into<String>,
-        kind: ChangeKind,
-        size: Option<u64>,
-    ) -> Self::Change;
+    fn sync_change(&self, path: impl Into<String>, kind: ChangeKind, size: Option<u64>) -> Self::Change;
 }
 
 /// Provides the carriers and constructors for what a running transfer states.
@@ -30,10 +25,7 @@ pub trait SyncObservationAlg: RsyncSorts {
 #[delegatable_trait]
 pub trait SyncObservationViewAlg: RsyncSorts {
     /// Observes the changed path, exactly when the observation states one.
-    fn observation_change<'a>(
-        &self,
-        observation: &'a Self::Observation,
-    ) -> Option<&'a Self::Change>;
+    fn observation_change<'a>(&self, observation: &'a Self::Observation) -> Option<&'a Self::Change>;
     /// Observes the bytes moved and the share completed, exactly when the observation states them.
     fn observation_progress(&self, observation: &Self::Observation) -> Option<(u64, u16)>;
 }
@@ -77,9 +69,7 @@ where
         }
         let kind = read_kind(flags)?;
         // A removal is stated without a size, because the transfer never looked at what it holds.
-        let size = (kind != ChangeKind::Delete)
-            .then(|| read_count(size))
-            .flatten();
+        let size = (kind != ChangeKind::Delete).then(|| read_count(size)).flatten();
         Some(self.sync_change(path, kind, size))
     }
 }
@@ -134,7 +124,5 @@ fn read_advance(line: &str) -> Option<(u64, u16)> {
 /// Reads a count the transfer program wrote, which it groups for a reader.
 fn read_count(text: &str) -> Option<u64> {
     let digits = text.replace([',', '.', '\u{a0}'], "");
-    (!digits.is_empty() && digits.chars().all(|digit| digit.is_ascii_digit()))
-        .then(|| digits.parse().ok())
-        .flatten()
+    (!digits.is_empty() && digits.chars().all(|digit| digit.is_ascii_digit())).then(|| digits.parse().ok()).flatten()
 }

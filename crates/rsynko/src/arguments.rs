@@ -21,9 +21,7 @@ pub(crate) struct Arguments {
 impl Arguments {
     pub(crate) fn target(&self, index: usize) -> OutputTarget {
         if self.sources.len() == 1 && index == 0 {
-            self.output
-                .clone()
-                .map_or(OutputTarget::Title, OutputTarget::Path)
+            self.output.clone().map_or(OutputTarget::Title, OutputTarget::Path)
         } else {
             OutputTarget::Title
         }

@@ -4,9 +4,8 @@ use reqwest::blocking::{Client, RequestBuilder, Response};
 use rsynko_download::*;
 use rsynko_media::*;
 use rsynko_memory::{
-    Artifact, DownloadEvent, DownloadProgress, DownloadSyntax, Extraction, ExtractorKey, Format,
-    FormatPredicate, FormatSelection, InfoRecord, InfoValue, Media, MediaSyntax, YoutubeRequest,
-    interpret_selection, predicate_accepts,
+    Artifact, DownloadEvent, DownloadProgress, DownloadSyntax, Extraction, ExtractorKey, Format, FormatPredicate,
+    FormatSelection, InfoRecord, InfoValue, Media, MediaSyntax, YoutubeRequest, interpret_selection, predicate_accepts,
 };
 use rsynko_x::status_id;
 use rsynko_yt::{YoutubeError, YoutubeExtractionExt, YoutubeRequestBytesAlg, youtube_id};
@@ -77,8 +76,7 @@ pub struct RuntimeEnvironment {
 ///
 /// What answers these addresses answers pages, and a request stating no agent at all is refused
 /// rather than answered.
-const BROWSER_AGENT: &str =
-    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/139 Safari/537.36";
+const BROWSER_AGENT: &str = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/139 Safari/537.36";
 
 impl RuntimeEnvironment {
     /// Constructs the production environment and its HTTP client.
@@ -94,11 +92,7 @@ impl RuntimeEnvironment {
             client: Client::builder().build()?,
             events: RefCell::default(),
             progress: RefCell::default(),
-            extractors: [
-                ExtractorKey::new("fixture"),
-                ExtractorKey::new("youtube"),
-                ExtractorKey::new("x"),
-            ],
+            extractors: [ExtractorKey::new("fixture"), ExtractorKey::new("youtube"), ExtractorKey::new("x")],
             observer: None,
             pause: None,
         })
@@ -120,10 +114,7 @@ impl RuntimeEnvironment {
     /// # Errors
     ///
     /// Returns failure to construct the Rustls-backed client.
-    pub fn build_pausable(
-        observer: RuntimeObservationSender,
-        pause: RuntimePause,
-    ) -> Result<Self, reqwest::Error> {
+    pub fn build_pausable(observer: RuntimeObservationSender, pause: RuntimePause) -> Result<Self, reqwest::Error> {
         let mut environment = Self::build_observed(observer)?;
         environment.pause = Some(pause);
         Ok(environment)
@@ -194,9 +185,7 @@ impl RuntimeEnvironment {
                 };
                 let mut request = self
                     .client
-                    .post(format!(
-                        "https://www.youtube.com/youtubei/v1/player?key={api_key}&prettyPrint=false"
-                    ))
+                    .post(format!("https://www.youtube.com/youtubei/v1/player?key={api_key}&prettyPrint=false"))
                     .header("content-type", "application/json")
                     .header("origin", "https://www.youtube.com")
                     .header("x-youtube-client-name", name)
@@ -222,10 +211,7 @@ impl RuntimeEnvironment {
                 .client
                 .get(url)
                 .header("referer", "https://www.youtube.com/")
-                .header(
-                    "user-agent",
-                    "com.google.android.youtube/21.26.364 (Linux; U; Android 11) gzip",
-                ),
+                .header("user-agent", "com.google.android.youtube/21.26.364 (Linux; U; Android 11) gzip"),
         }
     }
 
@@ -234,25 +220,14 @@ impl RuntimeEnvironment {
     /// The agent is stated because a request without one is refused rather than answered: an
     /// address that answers a page states what it would state to a browser, or nothing.
     pub(crate) fn fetch_bytes(&self, url: &str) -> Result<Vec<u8>, reqwest::Error> {
-        Ok(self
-            .client
-            .get(url)
-            .header("user-agent", BROWSER_AGENT)
-            .send()?
-            .error_for_status()?
-            .bytes()?
-            .to_vec())
+        Ok(self.client.get(url).header("user-agent", BROWSER_AGENT).send()?.error_for_status()?.bytes()?.to_vec())
     }
 
     fn execute(&self, request: &YoutubeRequest) -> Result<Response, RuntimeFetchError> {
         Ok(self.request(request).send()?.error_for_status()?)
     }
 
-    fn read_stream(
-        &self,
-        stream: &mut RuntimeFetchStream,
-        buffer: &mut [u8],
-    ) -> Result<usize, RuntimeFetchError> {
+    fn read_stream(&self, stream: &mut RuntimeFetchStream, buffer: &mut [u8]) -> Result<usize, RuntimeFetchError> {
         if let Some(pause) = &self.pause
             && !pause.wait_until_running()
         {
@@ -315,17 +290,10 @@ impl FetchStreamAlg for RuntimeEnvironment {
         }
         let response = self.client.get(url).send()?.error_for_status()?;
         let total = response.content_length();
-        Ok(FetchStream::new(
-            RuntimeFetchStream(Box::new(response)),
-            total,
-        ))
+        Ok(FetchStream::new(RuntimeFetchStream(Box::new(response)), total))
     }
 
-    fn read_fetch(
-        &self,
-        stream: &mut Self::Stream,
-        buffer: &mut [u8],
-    ) -> Result<usize, Self::Error> {
+    fn read_fetch(&self, stream: &mut Self::Stream, buffer: &mut [u8]) -> Result<usize, Self::Error> {
         self.read_stream(stream, buffer)
     }
 }
@@ -338,11 +306,7 @@ impl FetchStreamAlg<String> for RuntimeEnvironment {
         <Self as FetchStreamAlg<str>>::open_fetch(self, url.as_str())
     }
 
-    fn read_fetch(
-        &self,
-        stream: &mut Self::Stream,
-        buffer: &mut [u8],
-    ) -> Result<usize, Self::Error> {
+    fn read_fetch(&self, stream: &mut Self::Stream, buffer: &mut [u8]) -> Result<usize, Self::Error> {
         self.read_stream(stream, buffer)
     }
 }
@@ -357,23 +321,13 @@ impl FetchStreamAlg<YoutubeRequest> for RuntimeEnvironment {
     type Error = RuntimeFetchError;
     type Stream = RuntimeFetchStream;
 
-    fn open_fetch(
-        &self,
-        request: &YoutubeRequest,
-    ) -> Result<FetchStream<Self::Stream>, Self::Error> {
+    fn open_fetch(&self, request: &YoutubeRequest) -> Result<FetchStream<Self::Stream>, Self::Error> {
         let response = self.execute(request)?;
         let total = response.content_length();
-        Ok(FetchStream::new(
-            RuntimeFetchStream(Box::new(response)),
-            total,
-        ))
+        Ok(FetchStream::new(RuntimeFetchStream(Box::new(response)), total))
     }
 
-    fn read_fetch(
-        &self,
-        stream: &mut Self::Stream,
-        buffer: &mut [u8],
-    ) -> Result<usize, Self::Error> {
+    fn read_fetch(&self, stream: &mut Self::Stream, buffer: &mut [u8]) -> Result<usize, Self::Error> {
         self.read_stream(stream, buffer)
     }
 }
@@ -383,10 +337,7 @@ impl AtomicPublishAlg for RuntimeEnvironment {
     type Publication = RuntimePublication;
 
     fn begin_publication(&self, destination: &Path) -> Result<Self::Publication, Self::Error> {
-        if let Some(parent) = destination
-            .parent()
-            .filter(|path| !path.as_os_str().is_empty())
-        {
+        if let Some(parent) = destination.parent().filter(|path| !path.as_os_str().is_empty()) {
             fs::create_dir_all(parent)?;
         }
         let partial = partial_path(destination);
@@ -394,28 +345,16 @@ impl AtomicPublishAlg for RuntimeEnvironment {
             fs::remove_file(&partial)?;
         }
         let file = File::create(&partial)?;
-        Ok(RuntimePublication {
-            file,
-            partial,
-            destination: destination.to_owned(),
-        })
+        Ok(RuntimePublication { file, partial, destination: destination.to_owned() })
     }
 
-    fn write_publication(
-        &self,
-        publication: &mut Self::Publication,
-        bytes: &[u8],
-    ) -> Result<(), Self::Error> {
+    fn write_publication(&self, publication: &mut Self::Publication, bytes: &[u8]) -> Result<(), Self::Error> {
         publication.file.write_all(bytes)
     }
 
     fn commit_publication(&self, publication: Self::Publication) -> Result<(), Self::Error> {
         publication.file.sync_all()?;
-        let RuntimePublication {
-            file,
-            partial,
-            destination,
-        } = publication;
+        let RuntimePublication { file, partial, destination } = publication;
         drop(file);
         let result = fs::rename(&partial, destination);
         if result.is_err() {
@@ -437,9 +376,7 @@ impl DownloadReportAlg for RuntimeEnvironment {
     fn report_download(&self, event: DownloadEvent) {
         self.events.borrow_mut().push(event.clone());
         if let Some(observer) = &self.observer {
-            observer
-                .send(RuntimeObservation::terminal(event))
-                .expect("a running download is being read");
+            observer.send(RuntimeObservation::terminal(event)).expect("a running download is being read");
         }
     }
 }
@@ -450,9 +387,7 @@ impl DownloadProgressAlg for RuntimeEnvironment {
     fn report_progress(&self, progress: DownloadProgress) {
         self.progress.borrow_mut().push(progress.clone());
         if let Some(observer) = &self.observer {
-            observer
-                .send(RuntimeObservation::progress(progress))
-                .expect("a running download is being read");
+            observer.send(RuntimeObservation::progress(progress)).expect("a running download is being read");
         }
     }
 }
@@ -461,12 +396,7 @@ impl DownloadObservationAlg for RuntimeEnvironment {
     type Event = DownloadEvent;
     type Progress = DownloadProgress;
 
-    fn download_progress(
-        &self,
-        destination: &Path,
-        downloaded: u64,
-        total: Option<u64>,
-    ) -> Self::Progress {
+    fn download_progress(&self, destination: &Path, downloaded: u64, total: Option<u64>) -> Self::Progress {
         DownloadSyntax.download_progress(destination, downloaded, total)
     }
 
@@ -500,9 +430,7 @@ impl ExtractionApplyAlg for RuntimeEnvironment {
     fn extract_with(&self, extractor: &ExtractorKey, url: &str) -> Result<Extraction, Self::Error> {
         match extractor.0.as_str() {
             "fixture" => Ok(fixture_extraction()),
-            "youtube" => self
-                .extract_youtube(url)
-                .map_err(RuntimeExtractionError::Youtube),
+            "youtube" => self.extract_youtube(url).map_err(RuntimeExtractionError::Youtube),
             "x" => self.extract_x(url).map_err(RuntimeExtractionError::X),
             _ => Err(RuntimeExtractionError::UnknownExtractor(extractor.clone())),
         }
@@ -516,33 +444,17 @@ impl FormatPredicateMatchAlg for RuntimeEnvironment {
 }
 
 impl FormatSelectionApplyAlg for RuntimeEnvironment {
-    fn select_formats<'a>(
-        &self,
-        formats: &'a [Format],
-        selection: &FormatSelection,
-    ) -> Option<Vec<&'a Format>> {
+    fn select_formats<'a>(&self, formats: &'a [Format], selection: &FormatSelection) -> Option<Vec<&'a Format>> {
         interpret_selection(self, formats, selection)
     }
 }
 
 fn fixture_observations() -> InfoRecord {
     MediaSyntax.metadata([
-        (
-            FORMAT_SOURCE.to_owned(),
-            MediaSyntax.string_metadata(FIXTURE_MEDIA_URL),
-        ),
-        (
-            FORMAT_EXTENSION.to_owned(),
-            MediaSyntax.string_metadata("mp4"),
-        ),
-        (
-            FORMAT_HAS_AUDIO.to_owned(),
-            MediaSyntax.boolean_metadata(true),
-        ),
-        (
-            FORMAT_HAS_VIDEO.to_owned(),
-            MediaSyntax.boolean_metadata(true),
-        ),
+        (FORMAT_SOURCE.to_owned(), MediaSyntax.string_metadata(FIXTURE_MEDIA_URL)),
+        (FORMAT_EXTENSION.to_owned(), MediaSyntax.string_metadata("mp4")),
+        (FORMAT_HAS_AUDIO.to_owned(), MediaSyntax.boolean_metadata(true)),
+        (FORMAT_HAS_VIDEO.to_owned(), MediaSyntax.boolean_metadata(true)),
     ])
 }
 
@@ -550,10 +462,7 @@ fn fixture_extraction() -> Extraction {
     Extraction::Media(Media::new(
         "single-video".to_owned(),
         InfoRecord::default(),
-        vec![Format::new(
-            "fixture-best".to_owned(),
-            fixture_observations(),
-        )],
+        vec![Format::new("fixture-best".to_owned(), fixture_observations())],
     ))
 }
 

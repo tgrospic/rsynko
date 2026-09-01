@@ -78,12 +78,7 @@ where
 
     /// States how long one run has been running, not counting the time it was held still.
     fn running_for(&self, attending: &Attending<This::Id, This::Run, This::Moment>) -> Duration {
-        let holding = attending
-            .held_since
-            .as_ref()
-            .map_or(Duration::ZERO, |at| self.since(at));
-        self.since(&attending.began)
-            .saturating_sub(attending.held_for)
-            .saturating_sub(holding)
+        let holding = attending.held_since.as_ref().map_or(Duration::ZERO, |at| self.since(at));
+        self.since(&attending.began).saturating_sub(attending.held_for).saturating_sub(holding)
     }
 }

@@ -47,9 +47,7 @@ where
         }
         let remaining = total.saturating_sub(transferred);
         let nanos = u128::from(remaining).saturating_mul(elapsed) / u128::from(transferred);
-        Some(Duration::from_nanos(
-            u64::try_from(nanos).unwrap_or(u64::MAX),
-        ))
+        Some(Duration::from_nanos(u64::try_from(nanos).unwrap_or(u64::MAX)))
     }
 
     /// Derives the completed share as whole percent once it is known.
@@ -108,13 +106,6 @@ impl TransferPhase {
     /// A request that has not been asked for, and one that is over, are both unattended: nothing
     /// is working on their behalf, and nothing has to be told they were removed.
     pub const fn is_running(self) -> bool {
-        matches!(
-            self,
-            Self::Rehearsing
-                | Self::Extracting
-                | Self::Downloading
-                | Self::Paused
-                | Self::Publishing
-        )
+        matches!(self, Self::Rehearsing | Self::Extracting | Self::Downloading | Self::Paused | Self::Publishing)
     }
 }

@@ -111,10 +111,7 @@ where
 fn check_taking_laws() -> Result<()> {
     for (place, way) in take::ALL.iter().copied().enumerate() {
         let named = take::to(way);
-        if take::ALL[..place]
-            .iter()
-            .any(|earlier| take::to(*earlier) == named)
-        {
+        if take::ALL[..place].iter().any(|earlier| take::to(*earlier) == named) {
             bail!("two ways of taking are named {named}");
         }
         if take::from(named) != Some(way) {
@@ -130,22 +127,13 @@ fn check_taking_laws() -> Result<()> {
 
     for kind in attachment_kind::ALL.iter().copied() {
         if !Take::Everything.accepts(kind) {
-            bail!(
-                "taking everything leaves {} behind",
-                attachment_kind::to(kind)
-            );
+            bail!("taking everything leaves {} behind", attachment_kind::to(kind));
         }
         // Every kind is taken by exactly one of the ways that are not everything, so no file a
         // tweet carries is unreachable and none is offered twice.
-        let ways = [Take::Videos, Take::Images]
-            .into_iter()
-            .filter(|way| way.accepts(kind))
-            .count();
+        let ways = [Take::Videos, Take::Images].into_iter().filter(|way| way.accepts(kind)).count();
         if ways != 1 {
-            bail!(
-                "{} is taken by {ways} ways rather than one",
-                attachment_kind::to(kind)
-            );
+            bail!("{} is taken by {ways} ways rather than one", attachment_kind::to(kind));
         }
         if attachment_kind::from(attachment_kind::to(kind)) != Some(kind) {
             bail!("{} is not read back as itself", attachment_kind::to(kind));

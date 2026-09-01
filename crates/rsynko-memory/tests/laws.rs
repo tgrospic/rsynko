@@ -7,9 +7,7 @@
 use rsynko_download::DownloadLaws;
 use rsynko_manager::*;
 use rsynko_media::*;
-use rsynko_memory::{
-    MemoryManager, ReferenceLaws, ReferenceSession, ReferenceXEnv, ReferenceYoutubeLaws,
-};
+use rsynko_memory::{MemoryManager, ReferenceLaws, ReferenceSession, ReferenceXEnv, ReferenceYoutubeLaws};
 use rsynko_rsync::*;
 use rsynko_session::*;
 use rsynko_ui::*;

@@ -10,11 +10,7 @@ use ambassador::delegatable_trait;
 #[delegatable_trait]
 pub trait SyncCommandAlg: RsyncSorts {
     /// Defines the command running one program with exactly these arguments, in this order.
-    fn sync_command(
-        &self,
-        program: impl Into<String>,
-        arguments: impl IntoIterator<Item = String>,
-    ) -> Self::Command;
+    fn sync_command(&self, program: impl Into<String>, arguments: impl IntoIterator<Item = String>) -> Self::Command;
 }
 
 /// Specifies what one command states about itself.
@@ -50,12 +46,7 @@ where
     /// it was written. A source ending with a separator names the contents of a folder; one
     /// without names the path itself, which comes to rest inside the destination. Both are
     /// wanted, so neither is invented here.
-    fn transfer_command(
-        &self,
-        source: &This::Endpoint,
-        destination: &This::Endpoint,
-        mode: SyncMode,
-    ) -> This::Command {
+    fn transfer_command(&self, source: &This::Endpoint, destination: &This::Endpoint, mode: SyncMode) -> This::Command {
         let arguments = [
             // Everything a folder states about itself is part of the folder.
             "--archive",
@@ -69,12 +60,7 @@ where
         ]
         .into_iter()
         .map(str::to_owned)
-        .chain(
-            mode.profile
-                .profile_arguments()
-                .iter()
-                .map(|argument| (*argument).to_owned()),
-        )
+        .chain(mode.profile.profile_arguments().iter().map(|argument| (*argument).to_owned()))
         .chain(mode.rehearsal.then(|| SYNC_REHEARSAL.to_owned()))
         .chain([self.endpoint_text(source), self.endpoint_text(destination)]);
         self.sync_command(SYNC_PROGRAM, arguments)
@@ -82,14 +68,12 @@ where
 
     /// Observes whether the command states what it would do instead of doing it.
     fn command_rehearses(&self, command: &This::Command) -> bool {
-        self.command_arguments(command)
-            .any(|argument| argument == SYNC_REHEARSAL)
+        self.command_arguments(command).any(|argument| argument == SYNC_REHEARSAL)
     }
 
     /// Observes whether the command removes what the source no longer holds.
     fn command_mirrors(&self, command: &This::Command) -> bool {
-        self.command_arguments(command)
-            .any(|argument| argument == SYNC_MIRROR)
+        self.command_arguments(command).any(|argument| argument == SYNC_MIRROR)
     }
 }
 
@@ -106,19 +90,13 @@ impl SyncMode {
     /// Selects a transfer that states what it would do and changes nothing.
     #[must_use]
     pub const fn rehearsal() -> Self {
-        Self {
-            profile: SyncProfile::Copy,
-            rehearsal: true,
-        }
+        Self { profile: SyncProfile::Copy, rehearsal: true }
     }
 
     /// Selects a transfer that adds and replaces, and removes nothing.
     #[must_use]
     pub const fn transfer() -> Self {
-        Self {
-            profile: SyncProfile::Copy,
-            rehearsal: false,
-        }
+        Self { profile: SyncProfile::Copy, rehearsal: false }
     }
 
     /// Selects whether the transfer states what it would do instead of doing it.
@@ -198,25 +176,15 @@ impl SyncProfile {
         match self {
             Self::Copy => "adds and replaces, removes nothing, good for topping a folder up",
             Self::Mirror => "makes the destination match exactly, good for keeping a copy current",
-            Self::MirrorKeeping => {
-                "mirrors, keeps what it replaces, compresses, good for remote backups"
-            }
+            Self::MirrorKeeping => "mirrors, keeps what it replaces, compresses, good for remote backups",
             Self::MirrorWhole => "mirrors by sending whole files, good for local disks and SSDs",
-            Self::MirrorReadable => {
-                "mirrors and makes everything readable, good for publishing a web root"
-            }
-            Self::SkipNewer => {
-                "replaces nothing newer at the destination, good for merging two copies"
-            }
-            Self::CompareContent => {
-                "compares what files hold, not when they changed, good after clock drift"
-            }
+            Self::MirrorReadable => "mirrors and makes everything readable, good for publishing a web root",
+            Self::SkipNewer => "replaces nothing newer at the destination, good for merging two copies",
+            Self::CompareContent => "compares what files hold, not when they changed, good after clock drift",
             Self::Resume => "continues large files where they left off, good for flaky links",
             Self::Move => "moves, removing what arrived safely, good for clearing a staging area",
             Self::LimitRate => "leaves room on the line, good for a shared connection",
-            Self::KeepMarks => {
-                "keeps links, ownership, and every file mark, good for system backups"
-            }
+            Self::KeepMarks => "keeps links, ownership, and every file mark, good for system backups",
             Self::OneDisk => "stays on the disk it started on, good for roots with mounts under",
             Self::SkipJunk => "leaves behind what no one meant to keep, good for editor droppings",
         }
@@ -238,11 +206,7 @@ impl SyncProfile {
             Self::LimitRate => &["--bwlimit=2000"],
             Self::KeepMarks => &["--hard-links", "--acls", "--xattrs"],
             Self::OneDisk => &["--one-file-system"],
-            Self::SkipJunk => &[
-                "--exclude=.DS_Store",
-                "--exclude=Thumbs.db",
-                "--exclude=*.tmp",
-            ],
+            Self::SkipJunk => &["--exclude=.DS_Store", "--exclude=Thumbs.db", "--exclude=*.tmp"],
         }
     }
 }

@@ -27,12 +27,7 @@ impl ExtractionAlg for CountSyntax {
     ) -> Self::Extraction {
         formats.into_iter().count() + 1
     }
-    fn url_reference(
-        &self,
-        _: impl Into<String>,
-        _: Option<Self::Extractor>,
-        _: bool,
-    ) -> Self::Extraction {
+    fn url_reference(&self, _: impl Into<String>, _: Option<Self::Extractor>, _: bool) -> Self::Extraction {
         1
     }
     fn extraction_collection(
@@ -52,10 +47,7 @@ fn recursive_extraction_construction_does_not_fix_tree_representation() {
         None,
         CollectionKind::Playlist,
         (),
-        [
-            CountSyntax.media("one", (), [()]),
-            CountSyntax.url_reference("two", None, false),
-        ],
+        [CountSyntax.media("one", (), [()]), CountSyntax.url_reference("two", None, false)],
     );
     assert_eq!(count, 4);
 

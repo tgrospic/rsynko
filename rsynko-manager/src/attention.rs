@@ -25,9 +25,7 @@ where
 {
     /// States every request waiting for an interpreter to do what it asks, in collection order.
     fn wanting_work(&self) -> Vec<This::Id> {
-        self.queue_ids()
-            .filter(|id| self.entry_phase(*id) == Some(TransferPhase::Waiting))
-            .collect()
+        self.queue_ids().filter(|id| self.entry_phase(*id) == Some(TransferPhase::Waiting)).collect()
     }
 
     /// States what one request wants of the run working on its behalf.
@@ -58,12 +56,7 @@ where
             return;
         }
         self.apply_transfer_event(id, TransferObservationOp::Started {});
-        self.apply_transfer_event(
-            id,
-            TransferObservationOp::PauseCapability {
-                supported: holdable,
-            },
-        );
+        self.apply_transfer_event(id, TransferObservationOp::PauseCapability { supported: holdable });
     }
 
     /// States how long one run has been running, when the request counts that.
@@ -78,20 +71,12 @@ where
     /// States that one run refused, as the kind of run the request asks for.
     fn refused(&mut self, id: This::Id, detail: &str) {
         if self.rehearses(id) {
-            self.apply_rehearsal_event(
-                id,
-                RehearsalObservationOp::Failed {
-                    message: summary_line(detail),
-                },
-            );
+            self.apply_rehearsal_event(id, RehearsalObservationOp::Failed { message: summary_line(detail) });
             return;
         }
         self.apply_transfer_event(
             id,
-            TransferObservationOp::ProgramFailed {
-                summary: summary_line(detail),
-                detail: detail_text(detail),
-            },
+            TransferObservationOp::ProgramFailed { summary: summary_line(detail), detail: detail_text(detail) },
         );
     }
 
@@ -104,10 +89,7 @@ where
             self.apply_rehearsal_event(id, RehearsalObservationOp::Reported { changes });
             return;
         }
-        let bytes = changes
-            .iter()
-            .filter_map(PlannedChangeAlg::change_size)
-            .fold(0_u64, u64::saturating_add);
+        let bytes = changes.iter().filter_map(PlannedChangeAlg::change_size).fold(0_u64, u64::saturating_add);
         self.apply_transfer_event(id, TransferObservationOp::Completed { destination, bytes });
     }
 
@@ -122,13 +104,8 @@ where
         };
         self.queue_ids()
             .filter(|other| *other != id)
-            .filter(|other| {
-                self.entry_phase(*other)
-                    .is_some_and(TransferPhase::is_running)
-            })
-            .any(|other| {
-                self.queue_entry(other).and_then(QueueEntryAlg::output) == Some(destination)
-            })
+            .filter(|other| self.entry_phase(*other).is_some_and(TransferPhase::is_running))
+            .any(|other| self.queue_entry(other).and_then(QueueEntryAlg::output) == Some(destination))
     }
 
     /// Observes the phase one request has reached, while the collection still holds it.
@@ -139,13 +116,7 @@ where
 
 /// States the one line a reader is shown about a failure.
 pub fn summary_line(detail: &str) -> String {
-    detail
-        .lines()
-        .next()
-        .unwrap_or_default()
-        .chars()
-        .take(SUMMARY_COLUMNS)
-        .collect()
+    detail.lines().next().unwrap_or_default().chars().take(SUMMARY_COLUMNS).collect()
 }
 
 /// States what is kept about a failure for whoever goes looking for it.

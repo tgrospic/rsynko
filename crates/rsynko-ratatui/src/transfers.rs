@@ -29,18 +29,12 @@ pub struct TransferRun {
 impl<'a> Transfers<'a> {
     /// Attends to the folder transfers this collection asks for.
     pub const fn attending(manager: &'a mut ManagerState) -> Self {
-        Self {
-            manager,
-            clock: Monotonic,
-        }
+        Self { manager, clock: Monotonic }
     }
 
     /// Observes where one request states its transfer comes to rest.
     fn destination(&self, id: QueueId) -> Option<PathBuf> {
-        self.manager
-            .queue_entry(id)
-            .and_then(QueueEntryAlg::output)
-            .map(Path::to_owned)
+        self.manager.queue_entry(id).and_then(QueueEntryAlg::output).map(Path::to_owned)
     }
 }
 
@@ -57,40 +51,23 @@ impl UndertakingAlg for Transfers<'_> {
         self.manager
             .wanting_work()
             .into_iter()
-            .filter(|id| {
-                self.manager
-                    .queue_entry(*id)
-                    .is_some_and(|entry| entry.performer() == Performer::Program)
-            })
+            .filter(|id| self.manager.queue_entry(*id).is_some_and(|entry| entry.performer() == Performer::Program))
             .collect()
     }
 
     fn begin(&self, id: &QueueId) -> Result<TransferRun, String> {
-        let entry = self
-            .manager
-            .queue_entry(*id)
-            .ok_or_else(|| "the request is gone".to_owned())?;
+        let entry = self.manager.queue_entry(*id).ok_or_else(|| "the request is gone".to_owned())?;
         if entry.output().is_none() {
             return Err("the transfer names no destination".to_owned());
         }
         // The command is the one the request states, and not one built again here: a reader is
         // shown that command, and running a different one would make what is shown a lie.
-        let command = entry
-            .transfer_command()
-            .ok_or_else(|| "the transfer states no command to run".to_owned())?;
+        let command = entry.transfer_command().ok_or_else(|| "the transfer states no command to run".to_owned())?;
         let (sender, observations) = channel();
         let hold = ProcessHold::default();
         let environment = ProcessSyncEnv::held(sender, hold.clone());
-        let worker = thread::spawn(move || {
-            environment
-                .run_sync(&command)
-                .map_err(|error| error.to_string())
-        });
-        Ok(TransferRun {
-            worker,
-            observations,
-            hold,
-        })
+        let worker = thread::spawn(move || environment.run_sync(&command).map_err(|error| error.to_string()));
+        Ok(TransferRun { worker, observations, hold })
     }
 }
 
@@ -119,11 +96,7 @@ impl RunHoldAlg for Transfers<'_> {
     }
 
     fn hold_run(&self, run: &mut TransferRun, held: bool) {
-        let _signalled = if held {
-            run.hold.hold()
-        } else {
-            run.hold.release()
-        };
+        let _signalled = if held { run.hold.hold() } else { run.hold.release() };
     }
 
     fn abandon_run(&self, run: &mut TransferRun) {
@@ -137,11 +110,7 @@ impl AttentionAlg for Transfers<'_> {
     }
 
     fn heard(&mut self, id: &QueueId, report: SyncObservation) {
-        let SyncObservation::Progress {
-            transferred,
-            percent,
-        } = report
-        else {
+        let SyncObservation::Progress { transferred, percent } = report else {
             return;
         };
         // A rehearsal moves nothing, so its progress states nothing about a transfer.

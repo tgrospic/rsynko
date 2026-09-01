@@ -55,17 +55,8 @@ impl RsyncSorts for RsyncSyntax {
 }
 
 impl RsyncEndpointAlg for RsyncSyntax {
-    fn endpoint(
-        &self,
-        user: Option<String>,
-        host: Option<String>,
-        path: impl Into<String>,
-    ) -> Self::Endpoint {
-        RsyncEndpoint {
-            user,
-            host,
-            path: path.into(),
-        }
+    fn endpoint(&self, user: Option<String>, host: Option<String>, path: impl Into<String>) -> Self::Endpoint {
+        RsyncEndpoint { user, host, path: path.into() }
     }
 }
 
@@ -84,15 +75,8 @@ impl RsyncEndpointViewAlg for RsyncSyntax {
 }
 
 impl SyncCommandAlg for RsyncSyntax {
-    fn sync_command(
-        &self,
-        program: impl Into<String>,
-        arguments: impl IntoIterator<Item = String>,
-    ) -> Self::Command {
-        SyncCommand {
-            program: program.into(),
-            arguments: arguments.into_iter().collect(),
-        }
+    fn sync_command(&self, program: impl Into<String>, arguments: impl IntoIterator<Item = String>) -> Self::Command {
+        SyncCommand { program: program.into(), arguments: arguments.into_iter().collect() }
     }
 }
 
@@ -107,12 +91,7 @@ impl SyncCommandViewAlg for RsyncSyntax {
 }
 
 impl SyncChangeAlg for RsyncSyntax {
-    fn sync_change(
-        &self,
-        path: impl Into<String>,
-        kind: ChangeKind,
-        size: Option<u64>,
-    ) -> Self::Change {
+    fn sync_change(&self, path: impl Into<String>, kind: ChangeKind, size: Option<u64>) -> Self::Change {
         PlannedChange::new(path.into(), kind, size)
     }
 }
@@ -123,10 +102,7 @@ impl SyncObservationAlg for RsyncSyntax {
     }
 
     fn observed_progress(&self, transferred: u64, percent: u16) -> Self::Observation {
-        SyncObservation::Progress {
-            transferred,
-            percent,
-        }
+        SyncObservation::Progress { transferred, percent }
     }
 
     fn observed_nothing(&self) -> Self::Observation {
@@ -135,10 +111,7 @@ impl SyncObservationAlg for RsyncSyntax {
 }
 
 impl SyncObservationViewAlg for RsyncSyntax {
-    fn observation_change<'a>(
-        &self,
-        observation: &'a Self::Observation,
-    ) -> Option<&'a Self::Change> {
+    fn observation_change<'a>(&self, observation: &'a Self::Observation) -> Option<&'a Self::Change> {
         match observation {
             SyncObservation::Change(change) => Some(change),
             SyncObservation::Progress { .. } | SyncObservation::Nothing => None,
@@ -147,10 +120,7 @@ impl SyncObservationViewAlg for RsyncSyntax {
 
     fn observation_progress(&self, observation: &Self::Observation) -> Option<(u64, u16)> {
         match observation {
-            SyncObservation::Progress {
-                transferred,
-                percent,
-            } => Some((*transferred, *percent)),
+            SyncObservation::Progress { transferred, percent } => Some((*transferred, *percent)),
             SyncObservation::Change(_) | SyncObservation::Nothing => None,
         }
     }
@@ -158,10 +128,7 @@ impl SyncObservationViewAlg for RsyncSyntax {
 
 /// Runs folder transfers by stating a transcript instead of moving anything.
 // Several capabilities delegate to the same component, which Clippy reads as a repeated attribute.
-#[allow(
-    clippy::duplicated_attributes,
-    reason = "one delegation per capability, not per target"
-)]
+#[allow(clippy::duplicated_attributes, reason = "one delegation per capability, not per target")]
 #[derive(Clone, Debug, Default, Delegate)]
 #[delegate(RsyncEndpointAlg, target = "syntax")]
 #[delegate(RsyncEndpointViewAlg, target = "syntax")]

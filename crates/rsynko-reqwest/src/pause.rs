@@ -16,25 +16,13 @@ impl RuntimePause {
     /// Constructs a running transfer control.
     #[must_use]
     pub fn running() -> Self {
-        Self {
-            state: (
-                Mutex::new(RuntimeControlState {
-                    paused: false,
-                    cancelled: false,
-                }),
-                Condvar::new(),
-            )
-                .into(),
-        }
+        Self { state: (Mutex::new(RuntimeControlState { paused: false, cancelled: false }), Condvar::new()).into() }
     }
 
     /// Sets whether retrieval waits before reading its next chunk.
     pub fn set_paused(&self, paused: bool) {
         let (state, changed) = &*self.state;
-        state
-            .lock()
-            .unwrap_or_else(std::sync::PoisonError::into_inner)
-            .paused = paused;
+        state.lock().unwrap_or_else(std::sync::PoisonError::into_inner).paused = paused;
         if !paused {
             changed.notify_all();
         }
@@ -43,22 +31,15 @@ impl RuntimePause {
     /// Cancels retrieval and wakes a suspended reader.
     pub fn cancel(&self) {
         let (state, changed) = &*self.state;
-        state
-            .lock()
-            .unwrap_or_else(std::sync::PoisonError::into_inner)
-            .cancelled = true;
+        state.lock().unwrap_or_else(std::sync::PoisonError::into_inner).cancelled = true;
         changed.notify_all();
     }
 
     pub(crate) fn wait_until_running(&self) -> bool {
         let (state, changed) = &*self.state;
-        let mut paused = state
-            .lock()
-            .unwrap_or_else(std::sync::PoisonError::into_inner);
+        let mut paused = state.lock().unwrap_or_else(std::sync::PoisonError::into_inner);
         while paused.paused && !paused.cancelled {
-            paused = changed
-                .wait(paused)
-                .unwrap_or_else(std::sync::PoisonError::into_inner);
+            paused = changed.wait(paused).unwrap_or_else(std::sync::PoisonError::into_inner);
         }
         !paused.cancelled
     }
@@ -84,9 +65,7 @@ mod tests {
 
         assert!(receiver.recv_timeout(Duration::from_millis(20)).is_err());
         pause.set_paused(false);
-        receiver
-            .recv_timeout(Duration::from_secs(1))
-            .expect("reader resumed");
+        receiver.recv_timeout(Duration::from_secs(1)).expect("reader resumed");
         worker.join().expect("pause worker");
     }
 
@@ -97,17 +76,11 @@ mod tests {
         let waiting = pause.clone();
         let (sender, receiver) = mpsc::channel();
         let worker = thread::spawn(move || {
-            sender
-                .send(waiting.wait_until_running())
-                .expect("observer remains connected");
+            sender.send(waiting.wait_until_running()).expect("observer remains connected");
         });
 
         pause.cancel();
-        assert!(
-            !receiver
-                .recv_timeout(Duration::from_secs(1))
-                .expect("cancelled")
-        );
+        assert!(!receiver.recv_timeout(Duration::from_secs(1)).expect("cancelled"));
         worker.join().expect("pause worker");
     }
 }

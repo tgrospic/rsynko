@@ -69,11 +69,7 @@ pub trait ExtractionApplyAlg: MediaSorts {
     /// # Errors
     ///
     /// Returns the selected extractor's error when extraction fails.
-    fn extract_with(
-        &self,
-        extractor: &Self::Extractor,
-        url: &str,
-    ) -> Result<Self::Extraction, Self::Error>;
+    fn extract_with(&self, extractor: &Self::Extractor, url: &str) -> Result<Self::Extraction, Self::Error>;
 }
 
 /// Classifies an ordered extraction collection.
@@ -108,8 +104,7 @@ where
 {
     /// Chooses the first extractor accepting the URL.
     fn choose_extractor(&self, url: &str) -> Option<&Extractor> {
-        self.extractor_keys()
-            .find(|extractor| self.extractor_accepts(extractor, url))
+        self.extractor_keys().find(|extractor| self.extractor_accepts(extractor, url))
     }
 
     /// Extracts a URL through the first accepting extractor.
@@ -119,12 +114,8 @@ where
     /// Returns [`ExtractUrlError::Unsupported`] when no extractor accepts the URL, or wraps the
     /// selected extractor's failure in [`ExtractUrlError::Extractor`].
     fn extract_url(&self, url: &str) -> Result<Extraction, ExtractUrlError<This::Error>> {
-        let extractor = self
-            .choose_extractor(url)
-            .ok_or_else(|| ExtractUrlError::Unsupported {
-                url: url.to_owned(),
-            })?;
-        self.extract_with(extractor, url)
-            .map_err(ExtractUrlError::Extractor)
+        let extractor =
+            self.choose_extractor(url).ok_or_else(|| ExtractUrlError::Unsupported { url: url.to_owned() })?;
+        self.extract_with(extractor, url).map_err(ExtractUrlError::Extractor)
     }
 }

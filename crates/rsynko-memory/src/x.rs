@@ -33,17 +33,8 @@ impl XRequestViewAlg for ReferenceXEnv {
 }
 
 impl XAttachmentAlg for ReferenceXEnv {
-    fn attachment(
-        &self,
-        identity: impl Into<String>,
-        kind: AttachmentKind,
-        address: impl Into<String>,
-    ) -> XAttachment {
-        XAttachment {
-            identity: identity.into(),
-            kind,
-            address: address.into(),
-        }
+    fn attachment(&self, identity: impl Into<String>, kind: AttachmentKind, address: impl Into<String>) -> XAttachment {
+        XAttachment { identity: identity.into(), kind, address: address.into() }
     }
 }
 

@@ -66,10 +66,7 @@ where
         }
         self.check_progress_laws()?;
         if self.law_terminal_events() != 1 {
-            bail!(
-                "expected exactly one terminal event, observed {}",
-                self.law_terminal_events()
-            );
+            bail!("expected exactly one terminal event, observed {}", self.law_terminal_events());
         }
         match self.law_published() {
             Some(bytes) if bytes == expected => Ok(()),
@@ -85,10 +82,7 @@ where
     /// Returns the first violated law.
     fn download_fetch_failure_laws(&mut self) -> Result<()> {
         self.forget_law_resource();
-        if self
-            .download_resource(&self.law_source(), &self.law_destination())
-            .is_ok()
-        {
+        if self.download_resource(&self.law_source(), &self.law_destination()).is_ok() {
             bail!("an absent resource downloaded successfully");
         }
         self.check_failure_laws(0)
@@ -101,10 +95,7 @@ where
     /// Returns the first violated law.
     fn download_publication_failure_laws(&mut self) -> Result<()> {
         self.refuse_law_publication();
-        if self
-            .download_resource(&self.law_source(), &self.law_destination())
-            .is_ok()
-        {
+        if self.download_resource(&self.law_source(), &self.law_destination()).is_ok() {
             bail!("a refused publication downloaded successfully");
         }
         self.check_failure_laws(1)
@@ -135,19 +126,13 @@ where
     /// Returns the first violated law.
     fn check_failure_laws(&self, abandoned: usize) -> Result<()> {
         if self.law_terminal_events() != 1 {
-            bail!(
-                "expected exactly one terminal event, observed {}",
-                self.law_terminal_events()
-            );
+            bail!("expected exactly one terminal event, observed {}", self.law_terminal_events());
         }
         if self.law_published().is_some() {
             bail!("a failed execution published bytes at its final path");
         }
         if self.law_abandoned() != abandoned {
-            bail!(
-                "a failed publication was abandoned {} times, expected {abandoned}",
-                self.law_abandoned()
-            );
+            bail!("a failed publication was abandoned {} times, expected {abandoned}", self.law_abandoned());
         }
         self.check_progress_laws()
     }

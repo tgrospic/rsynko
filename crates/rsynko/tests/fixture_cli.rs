@@ -12,15 +12,8 @@ fn command_downloads_the_fixture_to_its_semantic_default_path() {
         .output()
         .expect("run rsynko");
 
-    assert!(
-        output.status.success(),
-        "{}",
-        String::from_utf8_lossy(&output.stderr)
-    );
-    assert_eq!(
-        std::fs::read(directory.path().join("single-video.mp4")).expect("final file"),
-        FIXTURE_BYTES
-    );
+    assert!(output.status.success(), "{}", String::from_utf8_lossy(&output.stderr));
+    assert_eq!(std::fs::read(directory.path().join("single-video.mp4")).expect("final file"), FIXTURE_BYTES);
     assert!(!directory.path().join("single-video.mp4.part").exists());
     assert_eq!(
         String::from_utf8(output.stdout)

@@ -12,10 +12,7 @@ use std::time::{Duration, Instant};
 
 /// States one program the interpreter runs in place of a transfer.
 fn stated(script: &str) -> SyncCommand {
-    SyncCommand {
-        program: "/bin/sh".to_owned(),
-        arguments: vec!["-c".to_owned(), script.to_owned()],
-    }
+    SyncCommand { program: "/bin/sh".to_owned(), arguments: vec!["-c".to_owned(), script.to_owned()] }
 }
 
 /// Waits until something is true, and states whether it ever became true.
@@ -41,10 +38,7 @@ fn an_abandoned_transfer_does_not_outlive_being_ended() {
     // A transfer that would run far longer than anybody would wait for it.
     let command = stated("echo started; sleep 300");
     let worker = thread::spawn(move || environment.run_sync(&command));
-    assert!(
-        became(|| watched.try_recv().is_ok()),
-        "the program never ran"
-    );
+    assert!(became(|| watched.try_recv().is_ok()), "the program never ran");
 
     // Ending is asked for again until it is over, because a program that has not started yet
     // cannot be told to stop.
@@ -64,10 +58,7 @@ fn a_running_transfer_is_held_still_and_let_go_again() {
     let environment = ProcessSyncEnv::held(sender, hold.clone());
     let command = stated("echo started; sleep 300");
     let worker = thread::spawn(move || environment.run_sync(&command));
-    assert!(
-        became(|| watched.try_recv().is_ok()),
-        "the program never ran"
-    );
+    assert!(became(|| watched.try_recv().is_ok()), "the program never ran");
     let process = hold.process().expect("a running program");
 
     assert!(hold.hold(), "a running program was not held");
@@ -91,9 +82,7 @@ fn held_still(process: u32) -> bool {
     std::fs::read_to_string(format!("/proc/{process}/stat"))
         .ok()
         .and_then(|stated| {
-            stated
-                .rsplit_once(')')
-                .and_then(|(_, rest)| rest.split_whitespace().next().map(str::to_owned))
+            stated.rsplit_once(')').and_then(|(_, rest)| rest.split_whitespace().next().map(str::to_owned))
         })
         .is_some_and(|condition| condition == "T")
 }

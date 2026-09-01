@@ -38,18 +38,12 @@ pub struct ReferenceRun {
 impl ReferenceSession {
     /// Observes one authored request.
     fn request(&self, id: usize) -> &ReferenceRequest {
-        self.requests
-            .iter()
-            .find(|request| request.id == id)
-            .expect("an authored request")
+        self.requests.iter().find(|request| request.id == id).expect("an authored request")
     }
 
     /// Observes one authored request to tell it something.
     fn request_mut(&mut self, id: usize) -> &mut ReferenceRequest {
-        self.requests
-            .iter_mut()
-            .find(|request| request.id == id)
-            .expect("an authored request")
+        self.requests.iter_mut().find(|request| request.id == id).expect("an authored request")
     }
 
     /// Authors one request, and names it.
@@ -78,11 +72,7 @@ impl SessionSorts for ReferenceSession {
 
 impl UndertakingAlg for ReferenceSession {
     fn unattended(&self) -> Vec<usize> {
-        self.requests
-            .iter()
-            .filter(|request| !request.attended)
-            .map(|request| request.id)
-            .collect()
+        self.requests.iter().filter(|request| !request.attended).map(|request| request.id).collect()
     }
 
     fn begin(&self, id: &usize) -> Result<ReferenceRun, String> {

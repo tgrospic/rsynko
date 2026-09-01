@@ -74,12 +74,9 @@ pub impl TransferPhase {
         match self {
             Self::Ready | Self::Paused => "○",
             Self::Rehearsing => "◌",
-            Self::Waiting
-            | Self::Extracting
-            | Self::Downloading
-            | Self::Publishing
-            | Self::Complete
-            | Self::Failed => "●",
+            Self::Waiting | Self::Extracting | Self::Downloading | Self::Publishing | Self::Complete | Self::Failed => {
+                "●"
+            }
         }
     }
 }
@@ -105,10 +102,7 @@ pub impl DetailControl {
 
     /// States whether the control is shown as a field stating a value rather than as an action.
     fn states_value(self) -> bool {
-        matches!(
-            self,
-            Self::Input | Self::Output | Self::Format | Self::Command | Self::Report | Self::Log
-        )
+        matches!(self, Self::Input | Self::Output | Self::Format | Self::Command | Self::Report | Self::Log)
     }
 }
 
@@ -204,11 +198,7 @@ pub fn duration_label(duration: Duration) -> String {
     let hours = seconds / 3600;
     let minutes = seconds % 3600 / 60;
     let seconds = seconds % 60;
-    if hours > 0 {
-        format!("{hours}:{minutes:02}:{seconds:02}")
-    } else {
-        format!("{minutes:02}:{seconds:02}")
-    }
+    if hours > 0 { format!("{hours}:{minutes:02}:{seconds:02}") } else { format!("{minutes:02}:{seconds:02}") }
 }
 
 /// States text within a column budget, ending elided text with an ellipsis.
@@ -217,19 +207,13 @@ pub fn elided(text: &str, columns: usize) -> String {
     if text.chars().count() <= columns {
         return text.to_owned();
     }
-    text.chars()
-        .take(columns.saturating_sub(1))
-        .collect::<String>()
-        + "…"
+    text.chars().take(columns.saturating_sub(1)).collect::<String>() + "…"
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{
-        ARMED_MODE, CURSOR_MARK, EXPANDED_MARK, Gauge, Key, PATH_SEPARATOR, REHEARSING_MODE,
-        UNSTATED,
-    };
+    use crate::{ARMED_MODE, CURSOR_MARK, EXPANDED_MARK, Gauge, Key, PATH_SEPARATOR, REHEARSING_MODE, UNSTATED};
     use rsynko_manager::{ChangeKind, DetailControl, MediaStreams, SpaceAction, TransferPhase};
 
     /// Names every character this vocabulary states that is not plain ASCII.
@@ -252,15 +236,9 @@ mod tests {
 
     /// States every word this vocabulary states, so nothing states a character unnoticed.
     fn stated_words() -> Vec<String> {
-        let phases = TransferPhase::LIFECYCLE
-            .into_iter()
-            .flat_map(|phase| [phase.phase_label(), phase.phase_marker()]);
-        let changes = ChangeKind::REPORTED
-            .into_iter()
-            .flat_map(|kind| [kind.change_label(), kind.change_marker()]);
-        let streams = MediaStreams::OFFERED
-            .into_iter()
-            .map(MediaStreams::streams_label);
+        let phases = TransferPhase::LIFECYCLE.into_iter().flat_map(|phase| [phase.phase_label(), phase.phase_marker()]);
+        let changes = ChangeKind::REPORTED.into_iter().flat_map(|kind| [kind.change_label(), kind.change_marker()]);
+        let streams = MediaStreams::OFFERED.into_iter().map(MediaStreams::streams_label);
         let controls = [
             DetailControl::Input,
             DetailControl::Output,
@@ -275,14 +253,9 @@ mod tests {
         ]
         .into_iter()
         .map(DetailControl::control_label);
-        let spaces = [
-            SpaceAction::Start,
-            SpaceAction::Rehearse,
-            SpaceAction::Pause,
-            SpaceAction::Resume,
-        ]
-        .into_iter()
-        .map(SpaceAction::space_label);
+        let spaces = [SpaceAction::Start, SpaceAction::Rehearse, SpaceAction::Pause, SpaceAction::Resume]
+            .into_iter()
+            .map(SpaceAction::space_label);
         phases
             .chain(changes)
             .chain(streams)
@@ -305,9 +278,6 @@ mod tests {
             .filter(|stated| !stated.is_ascii() && !STATED.contains(stated))
             .collect::<Vec<_>>();
 
-        assert!(
-            unexpected.is_empty(),
-            "these are stated without having been checked for width: {unexpected:?}"
-        );
+        assert!(unexpected.is_empty(), "these are stated without having been checked for width: {unexpected:?}");
     }
 }

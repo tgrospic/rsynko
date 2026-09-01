@@ -8,17 +8,7 @@ use thiserror::Error;
 
 /// Derives Youtube extraction and specialized media retrieval as generic download.
 #[ext(name = YoutubeApplicationExt)]
-pub impl<
-    This,
-    Request,
-    RequestError,
-    ResponseError,
-    ChallengeError,
-    FetchError,
-    PublishError,
-    Event,
-    Progress,
-> This
+pub impl<This, Request, RequestError, ResponseError, ChallengeError, FetchError, PublishError, Event, Progress> This
 where
     This: YoutubeSorts<Request = Request>
         + YoutubeRequestAlg
@@ -55,33 +45,16 @@ where
         url: &str,
         selection: &This::Selection,
         target: &OutputTarget,
-    ) -> Result<
-        PathBuf,
-        YoutubeApplicationError<
-            RequestError,
-            ResponseError,
-            ChallengeError,
-            FetchError,
-            PublishError,
-        >,
-    > {
-        let extraction = self
-            .extract_youtube(url)
-            .map_err(YoutubeApplicationError::Extraction)?;
-        self.download_extraction(extraction, selection, target)
-            .map_err(YoutubeApplicationError::Media)
+    ) -> Result<PathBuf, YoutubeApplicationError<RequestError, ResponseError, ChallengeError, FetchError, PublishError>>
+    {
+        let extraction = self.extract_youtube(url).map_err(YoutubeApplicationError::Extraction)?;
+        self.download_extraction(extraction, selection, target).map_err(YoutubeApplicationError::Media)
     }
 }
 
 /// Denotes failure of one Youtube-specialized media download.
 #[derive(Debug, Error)]
-pub enum YoutubeApplicationError<
-    RequestError,
-    ResponseError,
-    ChallengeError,
-    FetchError,
-    PublishError,
-> {
+pub enum YoutubeApplicationError<RequestError, ResponseError, ChallengeError, FetchError, PublishError> {
     /// Denotes Youtube extraction failure.
     #[error("{0}")]
     Extraction(YoutubeError<RequestError, ResponseError, ChallengeError>),

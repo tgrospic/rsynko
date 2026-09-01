@@ -17,10 +17,8 @@ where
             self.set_selected_queue_id(None);
             return;
         }
-        let current = self
-            .selected_queue_id()
-            .and_then(|selected| ids.iter().position(|id| *id == selected))
-            .unwrap_or(0);
+        let current =
+            self.selected_queue_id().and_then(|selected| ids.iter().position(|id| *id == selected)).unwrap_or(0);
         let next = if forward {
             (current + 1) % ids.len()
         } else if current == 0 {
@@ -43,9 +41,7 @@ where
         let index = ids.iter().position(|id| *id == selected).unwrap_or(0);
         self.remove_queue_entry(selected);
         let remaining = self.queue_ids().collect::<Vec<_>>();
-        let next = remaining
-            .get(index.min(remaining.len().saturating_sub(1)))
-            .copied();
+        let next = remaining.get(index.min(remaining.len().saturating_sub(1))).copied();
         self.set_selected_queue_id(next);
         if matches!(self.page(), ManagerPage::Details(id) | ManagerPage::Formats(id) | ManagerPage::Output(id) | ManagerPage::Log(id) | ManagerPage::Command(id) if id == selected)
         {
@@ -97,10 +93,7 @@ where
             return;
         };
         let controls = entry.detail_controls();
-        if self
-            .selected_detail_control()
-            .is_some_and(|selected| !controls.contains(&selected))
-        {
+        if self.selected_detail_control().is_some_and(|selected| !controls.contains(&selected)) {
             self.set_selected_detail_control(controls.first().copied());
         }
     }
@@ -161,11 +154,7 @@ where
             return;
         };
         if entry.is_editable() {
-            self.set_output_draft(
-                entry
-                    .output()
-                    .map_or_else(String::new, |path| path.display().to_string()),
-            );
+            self.set_output_draft(entry.output().map_or_else(String::new, |path| path.display().to_string()));
             self.set_page(ManagerPage::Output(id));
             self.set_manager_message(None);
         }
@@ -180,10 +169,7 @@ where
             return;
         };
         let naming = entry.output_naming();
-        let extension = entry
-            .output()
-            .and_then(Path::extension)
-            .and_then(std::ffi::OsStr::to_str);
+        let extension = entry.output().and_then(Path::extension).and_then(std::ffi::OsStr::to_str);
         if self.output_draft().trim().is_empty() {
             self.set_manager_message(Some("enter a name".to_owned()));
             return;
@@ -203,11 +189,7 @@ where
 #[ext(name = ChoiceEditingExt)]
 pub impl<This> This
 where
-    This: NavigationStateAlg
-        + QueueCatalogAlg
-        + FormatCatalogStateAlg
-        + QueueDryRunAlg
-        + ManagerStatusAlg,
+    This: NavigationStateAlg + QueueCatalogAlg + FormatCatalogStateAlg + QueueDryRunAlg + ManagerStatusAlg,
     This::Entry: QueueEntryAlg,
     This::Id: Copy,
 {
@@ -263,9 +245,7 @@ where
             self.set_page(ManagerPage::Formats(id));
             self.set_manager_message(None);
         } else {
-            self.set_manager_message(Some(
-                "started downloads are immutable; duplicate to change options".to_owned(),
-            ));
+            self.set_manager_message(Some("started downloads are immutable; duplicate to change options".to_owned()));
         }
     }
 }
@@ -331,10 +311,7 @@ where
     ///
     /// Space names a collection entry, so it denotes nothing while another page is current.
     fn apply_selected_space(&mut self) {
-        if !matches!(
-            self.page(),
-            ManagerPage::Collection | ManagerPage::Details(_)
-        ) {
+        if !matches!(self.page(), ManagerPage::Collection | ManagerPage::Details(_)) {
             return;
         }
         let Some(id) = self.selected_queue_id() else {
@@ -404,10 +381,7 @@ where
 {
     /// Applies one manager intention or external observation.
     /// Applies one manager intention through the generated fold.
-    fn apply_manager_event(
-        &mut self,
-        event: ManagerIntentOp<This::Id, This::Source, This::Format, This::Change>,
-    ) {
+    fn apply_manager_event(&mut self, event: ManagerIntentOp<This::Id, This::Source, This::Format, This::Change>) {
         event.interpret(&mut IntentDispatch(self));
     }
 }
@@ -556,8 +530,7 @@ where
 
     fn safe_exit_requested(&mut self) {
         self.0.request_safe_exit();
-        self.0
-            .set_manager_message(Some("cancelling active downloads".to_owned()));
+        self.0.set_manager_message(Some("cancelling active downloads".to_owned()));
     }
 
     fn select_previous_format(&mut self) {

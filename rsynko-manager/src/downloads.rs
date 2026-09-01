@@ -16,12 +16,7 @@ pub trait DownloadsAlg: ManagerSorts {
 #[delegatable_trait]
 pub trait SourceRequestAlg: ManagerSorts {
     /// Defines one source request with explicit download options.
-    fn source(
-        &self,
-        input: impl Into<String>,
-        output: Self::Output,
-        options: Self::Options,
-    ) -> Self::Source;
+    fn source(&self, input: impl Into<String>, output: Self::Output, options: Self::Options) -> Self::Source;
 }
 
 /// Provides the carrier and constructors for initial media options.
@@ -99,14 +94,9 @@ where
 {
     /// Defines a downloads collection from source names using progressive media and suggested
     /// output naming.
-    fn progressive_downloads(
-        &self,
-        sources: impl IntoIterator<Item = impl Into<String>>,
-    ) -> This::Downloads {
+    fn progressive_downloads(&self, sources: impl IntoIterator<Item = impl Into<String>>) -> This::Downloads {
         self.downloads(
-            sources
-                .into_iter()
-                .map(|source| self.source(source, self.suggested_output(), self.progressive())),
+            sources.into_iter().map(|source| self.source(source, self.suggested_output(), self.progressive())),
         )
     }
 }

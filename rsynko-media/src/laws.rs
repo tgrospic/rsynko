@@ -42,15 +42,11 @@ where
             bail!("neutrality violated: a record of no fields differs from the empty record");
         }
         let stated = self.string_metadata("first");
-        if self.metadata([("title".to_owned(), stated.clone())])
-            != self.text_metadata("title", "first")
-        {
+        if self.metadata([("title".to_owned(), stated.clone())]) != self.text_metadata("title", "first") {
             bail!("single-field construction disagrees with its derived form");
         }
-        let replaced = self.metadata([
-            ("title".to_owned(), stated),
-            ("title".to_owned(), self.string_metadata("second")),
-        ]);
+        let replaced =
+            self.metadata([("title".to_owned(), stated), ("title".to_owned(), self.string_metadata("second"))]);
         if replaced != self.text_metadata("title", "second") {
             bail!("replacement violated: a later equal key did not replace the earlier field");
         }
@@ -88,12 +84,8 @@ where
         self.check_selection_against(&catalog, &self.format_extension("never"))?;
 
         // Height is an ordinary observation, so bounding it needs no dedicated predicate.
-        let sized = [360_i64, 720, 1080].map(|height| {
-            self.format(
-                "sized",
-                self.metadata([("height".to_owned(), self.integer_metadata(height))]),
-            )
-        });
+        let sized = [360_i64, 720, 1080]
+            .map(|height| self.format("sized", self.metadata([("height".to_owned(), self.integer_metadata(height))])));
         self.check_selection_against(&sized, &self.at_most("height", 720.0))?;
         self.check_selection_against(&sized, &self.greater_than("height", 720.0))?;
         // An unstated observation satisfies no predicate speaking about it.
@@ -106,18 +98,12 @@ where
     /// # Errors
     ///
     /// Returns the first violated law.
-    fn check_selection_against(
-        &self,
-        catalog: &[This::Format],
-        predicate: &This::Predicate,
-    ) -> Result<()>
+    fn check_selection_against(&self, catalog: &[This::Format], predicate: &This::Predicate) -> Result<()>
     where
         This::Predicate: Clone,
     {
-        let matching: Vec<&This::Format> = catalog
-            .iter()
-            .filter(|format| self.format_matches(predicate, format))
-            .collect();
+        let matching: Vec<&This::Format> =
+            catalog.iter().filter(|format| self.format_matches(predicate, format)).collect();
         let best = self.select_formats(catalog, &self.best_format(predicate.clone()));
         let worst = self.select_formats(catalog, &self.worst_format(predicate.clone()));
 
@@ -136,25 +122,18 @@ where
 
         let merged = self.select_formats(
             catalog,
-            &self.merge_formats([
-                self.best_format(predicate.clone()),
-                self.worst_format(predicate.clone()),
-            ]),
+            &self.merge_formats([self.best_format(predicate.clone()), self.worst_format(predicate.clone())]),
         );
         let Some(merged) = merged else {
             bail!("Merge failed although every child succeeded");
         };
-        if merged.len() != 2 || !std::ptr::eq(merged[0], *last) || !std::ptr::eq(merged[1], *first)
-        {
+        if merged.len() != 2 || !std::ptr::eq(merged[0], *last) || !std::ptr::eq(merged[1], *first) {
             bail!("Merge did not preserve child-program order");
         }
 
         let fallback = self.select_formats(
             catalog,
-            &self.fallback_formats([
-                self.best_format(predicate.clone()),
-                self.worst_format(predicate.clone()),
-            ]),
+            &self.fallback_formats([self.best_format(predicate.clone()), self.worst_format(predicate.clone())]),
         );
         if !chose(fallback.as_deref(), last) {
             bail!("Fallback was not left-biased");
@@ -232,27 +211,15 @@ where
         This::Artifact: PartialEq + Debug,
         This::Metadata: Clone,
     {
-        let resting = self.metadata([(
-            ARTIFACT_LOCATION.to_owned(),
-            self.string_metadata("temporary.part"),
-        )]);
+        let resting = self.metadata([(ARTIFACT_LOCATION.to_owned(), self.string_metadata("temporary.part"))]);
         let stated = self.artifact("media", ArtifactKind::Media, resting.clone());
         if stated != self.artifact("media", ArtifactKind::Media, resting.clone()) {
             bail!("definition is not a function of identity, role, and observations");
         }
         for (name, other) in [
-            (
-                "identity",
-                self.artifact("subtitle", ArtifactKind::Media, resting.clone()),
-            ),
-            (
-                "role",
-                self.artifact("media", ArtifactKind::Subtitle, resting),
-            ),
-            (
-                "observations",
-                self.artifact("media", ArtifactKind::Media, self.empty_metadata()),
-            ),
+            ("identity", self.artifact("subtitle", ArtifactKind::Media, resting.clone())),
+            ("role", self.artifact("media", ArtifactKind::Subtitle, resting)),
+            ("observations", self.artifact("media", ArtifactKind::Media, self.empty_metadata())),
         ] {
             if stated == other {
                 bail!("artifact {name} is not significant: {stated:?} equals {other:?}");
@@ -274,8 +241,7 @@ pub trait ProcessingLawFixture {
 #[ext(name = ProcessingApplicationLaws)]
 pub impl<This> This
 where
-    This:
-        ProcessingProgramAlg + ProcessingProgramViewAlg + ProcessingApplyAlg + ProcessingLawFixture,
+    This: ProcessingProgramAlg + ProcessingProgramViewAlg + ProcessingApplyAlg + ProcessingLawFixture,
 {
     /// Checks that interpreting one stage applies its subsequence in declaration order.
     ///
@@ -342,18 +308,13 @@ where
     where
         This::Step: Clone + PartialEq + Debug,
     {
-        let authored: Vec<This::Step> = [
-            (ProcessingStage::PostProcess, "first"),
-            (ProcessingStage::AfterMove, "second"),
-        ]
-        .into_iter()
-        .map(|(stage, name)| self.processing_step(stage, self.processor(name)))
-        .collect();
+        let authored: Vec<This::Step> =
+            [(ProcessingStage::PostProcess, "first"), (ProcessingStage::AfterMove, "second")]
+                .into_iter()
+                .map(|(stage, name)| self.processing_step(stage, self.processor(name)))
+                .collect();
 
-        if Self::processing_steps(&self.processing([]))
-            .next()
-            .is_some()
-        {
+        if Self::processing_steps(&self.processing([])).next().is_some() {
             bail!("the empty program is not empty");
         }
         let program = self.processing(authored.iter().cloned());
@@ -362,30 +323,16 @@ where
             bail!("construction did not preserve declaration order: {declared:?}");
         }
         for (side, composed) in [
-            (
-                "left",
-                self.then_processing(
-                    self.processing([]),
-                    self.processing(authored.iter().cloned()),
-                ),
-            ),
-            (
-                "right",
-                self.then_processing(
-                    self.processing(authored.iter().cloned()),
-                    self.processing([]),
-                ),
-            ),
+            ("left", self.then_processing(self.processing([]), self.processing(authored.iter().cloned()))),
+            ("right", self.then_processing(self.processing(authored.iter().cloned()), self.processing([]))),
         ] {
             let observed: Vec<This::Step> = Self::processing_steps(&composed).cloned().collect();
             if observed != authored {
                 bail!("the empty program is not an identity on the {side}: {observed:?}");
             }
         }
-        let doubled = self.then_processing(
-            self.processing(authored.iter().cloned()),
-            self.processing(authored.iter().cloned()),
-        );
+        let doubled =
+            self.then_processing(self.processing(authored.iter().cloned()), self.processing(authored.iter().cloned()));
         let observed: Vec<This::Step> = Self::processing_steps(&doubled).cloned().collect();
         let expected: Vec<This::Step> = authored.iter().chain(&authored).cloned().collect();
         if observed != expected {
@@ -411,22 +358,15 @@ where
         if named != portable_file_name(Some("A/B"), "id", Some("mp4")) {
             bail!("naming is not a function of title, fallback, and extension");
         }
-        if portable_file_name(None, "id", Some("mp4"))
-            != portable_file_name(Some("   "), "id", Some("mp4"))
-        {
+        if portable_file_name(None, "id", Some("mp4")) != portable_file_name(Some("   "), "id", Some("mp4")) {
             bail!("a blank title did not select the stated fallback identity");
         }
         for candidate in [&named, &portable_user_file_name("a/b.mp4", Some("mp4"))] {
             if candidate.components().count() != 1 {
-                bail!(
-                    "naming produced a path rather than one file component: {}",
-                    candidate.display()
-                );
+                bail!("naming produced a path rather than one file component: {}", candidate.display());
             }
         }
-        if portable_user_file_name("edited.mp4", Some("bin"))
-            .extension()
-            .and_then(|value| value.to_str())
+        if portable_user_file_name("edited.mp4", Some("bin")).extension().and_then(|value| value.to_str())
             != Some("mp4")
         {
             bail!("an edited name did not keep its valid explicit extension");
@@ -454,9 +394,7 @@ where
     {
         let accepted = self.accepted_law_url();
         let unsupported = self.unsupported_law_url();
-        let expected = self
-            .extractor_keys()
-            .find(|key| self.extractor_accepts(key, &accepted));
+        let expected = self.extractor_keys().find(|key| self.extractor_accepts(key, &accepted));
         let Some(expected) = expected else {
             bail!("the fixture URL {accepted} is accepted by no catalog entry");
         };
@@ -522,31 +460,20 @@ where
         let format = self.format(
             "18",
             self.metadata([
-                (
-                    FORMAT_SOURCE.to_owned(),
-                    self.string_metadata(self.located_law_source()),
-                ),
-                (
-                    FORMAT_EXTENSION.to_owned(),
-                    self.string_metadata(self.law_extension()),
-                ),
+                (FORMAT_SOURCE.to_owned(), self.string_metadata(self.located_law_source())),
+                (FORMAT_EXTENSION.to_owned(), self.string_metadata(self.law_extension())),
             ]),
         );
         let extraction = self.media("law-media", self.empty_metadata(), [format]);
         let selection = self.best_format(self.any_format());
 
-        let published =
-            match self.download_extraction(extraction, &selection, &OutputTarget::MediaId) {
-                Ok(path) => path,
-                Err(error) => bail!("the composed program failed: {error}"),
-            };
+        let published = match self.download_extraction(extraction, &selection, &OutputTarget::MediaId) {
+            Ok(path) => path,
+            Err(error) => bail!("the composed program failed: {error}"),
+        };
         let expected = PathBuf::from(format!("law-media.{}", self.law_extension()));
         if published != expected {
-            bail!(
-                "naming derived {} rather than {}",
-                published.display(),
-                expected.display()
-            );
+            bail!("naming derived {} rather than {}", published.display(), expected.display());
         }
         if self.law_published_bytes(&published).as_deref() != Some(&self.expected_law_bytes()[..]) {
             bail!("the selected format's source did not reach download unchanged");

@@ -109,23 +109,19 @@ fn decipher_body(player: &str) -> Option<&str> {
 
 /// Names the helper object the decipher body applies.
 fn helper_name(body: &str) -> Option<String> {
-    let call = body.split(';').map(str::trim).find(|call| {
-        call.split_once('.')
-            .is_some_and(|(head, tail)| !head.is_empty() && tail.contains('('))
-    })?;
+    let call = body
+        .split(';')
+        .map(str::trim)
+        .find(|call| call.split_once('.').is_some_and(|(head, tail)| !head.is_empty() && tail.contains('(')))?;
     call.split('.').next().map(str::to_owned)
 }
 
 /// Observes the body of the helper object the player states under one name.
 fn helper_object(player: &str, name: &str) -> Option<String> {
     // A player states the object as a `var` on its own or within a list, with or without spaces.
-    let start = [
-        format!("var {name}={{"),
-        format!("var {name} = {{"),
-        format!("{name}={{"),
-    ]
-    .into_iter()
-    .find_map(|marker| Some(player.find(&marker)? + marker.len()))?;
+    let start = [format!("var {name}={{"), format!("var {name} = {{"), format!("{name}={{")]
+        .into_iter()
+        .find_map(|marker| Some(player.find(&marker)? + marker.len()))?;
     let tail = &player[start..];
     let mut depth = 1_u32;
     for (offset, character) in tail.char_indices() {
@@ -155,9 +151,7 @@ fn helper_call<'a>(call: &'a str, helper: &str) -> Option<(&'a str, usize)> {
 /// Classifies one helper function by the transformation its body performs.
 fn step(object: &str, name: &str, argument: usize) -> Result<SignatureStep, SignatureProgramError> {
     let marker = format!("{name}:function");
-    let start = object
-        .find(&marker)
-        .ok_or_else(|| SignatureProgramError::UnknownTransformation(name.to_owned()))?;
+    let start = object.find(&marker).ok_or_else(|| SignatureProgramError::UnknownTransformation(name.to_owned()))?;
     let body = &object[start..];
     let body = body.split_once('}').map_or(body, |(head, _)| head);
     if body.contains("reverse") {
@@ -167,9 +161,7 @@ fn step(object: &str, name: &str, argument: usize) -> Result<SignatureStep, Sign
     } else if body.contains('%') {
         Ok(SignatureStep::Swap(argument))
     } else {
-        Err(SignatureProgramError::UnknownTransformation(
-            name.to_owned(),
-        ))
+        Err(SignatureProgramError::UnknownTransformation(name.to_owned()))
     }
 }
 
@@ -195,12 +187,7 @@ return a.join("")};
 
         assert_eq!(
             program.steps(),
-            [
-                SignatureStep::Swap(32),
-                SignatureStep::Reverse,
-                SignatureStep::Drop(2),
-                SignatureStep::Swap(7),
-            ]
+            [SignatureStep::Swap(32), SignatureStep::Reverse, SignatureStep::Drop(2), SignatureStep::Swap(7),]
         );
     }
 
@@ -217,10 +204,7 @@ return a.join("")};
         let position = 7 % expected.len();
         expected.swap(0, position);
 
-        assert_eq!(
-            program.decipher("abcdefghijklmnopqrstuvwxyz0123456789"),
-            expected.into_iter().collect::<String>()
-        );
+        assert_eq!(program.decipher("abcdefghijklmnopqrstuvwxyz0123456789"), expected.into_iter().collect::<String>());
     }
 
     #[test]
@@ -228,28 +212,19 @@ return a.join("")};
         let program = SignatureProgram::recover(PLAYER).expect("decipher program");
         let signature = "abcdefghijklmnopqrstuvwxyz0123456789";
 
-        assert_eq!(
-            program.decipher(signature).chars().count(),
-            signature.len() - 2
-        );
+        assert_eq!(program.decipher(signature).chars().count(), signature.len() - 2);
     }
 
     #[test]
     fn a_script_stating_no_decipher_function_states_no_program() {
-        assert_eq!(
-            SignatureProgram::recover("var a = 1;"),
-            Err(SignatureProgramError::MissingFunction)
-        );
+        assert_eq!(SignatureProgram::recover("var a = 1;"), Err(SignatureProgramError::MissingFunction));
     }
 
     #[test]
     fn a_decipher_function_without_its_helper_object_states_no_program() {
         let orphan = r#"g.tj=function(a){a=a.split("");Kx.Ll(a,32);return a.join("")};"#;
 
-        assert_eq!(
-            SignatureProgram::recover(orphan),
-            Err(SignatureProgramError::MissingHelper)
-        );
+        assert_eq!(SignatureProgram::recover(orphan), Err(SignatureProgramError::MissingHelper));
     }
 
     #[test]

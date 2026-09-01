@@ -30,23 +30,12 @@ impl<Id, Source, Format, Change> KeyBinding<Id, Source, Format, Change> {
         keys: impl IntoIterator<Item = Key>,
         intent: ManagerIntentOp<Id, Source, Format, Change>,
     ) -> Self {
-        Self {
-            action: Some(action),
-            keys: keys.into_iter().map(Keystroke::plain).collect(),
-            intent,
-        }
+        Self { action: Some(action), keys: keys.into_iter().map(Keystroke::plain).collect(), intent }
     }
 
     /// Binds keys to an intention no menu action gates.
-    fn ungated(
-        keys: impl IntoIterator<Item = Key>,
-        intent: ManagerIntentOp<Id, Source, Format, Change>,
-    ) -> Self {
-        Self {
-            action: None,
-            keys: keys.into_iter().map(Keystroke::plain).collect(),
-            intent,
-        }
+    fn ungated(keys: impl IntoIterator<Item = Key>, intent: ManagerIntentOp<Id, Source, Format, Change>) -> Self {
+        Self { action: None, keys: keys.into_iter().map(Keystroke::plain).collect(), intent }
     }
 
     /// Observes whether one keystroke reaches the binding.
@@ -78,26 +67,14 @@ where
                     [Key::Down, Key::Character('j')],
                     ManagerIntentOp::SelectNext {},
                 ),
-                KeyBinding::action(
-                    ManagerAction::Activate,
-                    [Key::Enter],
-                    ManagerIntentOp::OpenSelected {},
-                ),
+                KeyBinding::action(ManagerAction::Activate, [Key::Enter], ManagerIntentOp::OpenSelected {}),
                 KeyBinding::action(
                     ManagerAction::AddSources,
                     [Key::Character('a')],
                     ManagerIntentOp::OpenAddSources {},
                 ),
-                KeyBinding::action(
-                    ManagerAction::Space,
-                    [Key::Character(' ')],
-                    ManagerIntentOp::ApplySelectedSpace {},
-                ),
-                KeyBinding::action(
-                    ManagerAction::Remove,
-                    [Key::Delete],
-                    ManagerIntentOp::RemoveSelected {},
-                ),
+                KeyBinding::action(ManagerAction::Space, [Key::Character(' ')], ManagerIntentOp::ApplySelectedSpace {}),
+                KeyBinding::action(ManagerAction::Remove, [Key::Delete], ManagerIntentOp::RemoveSelected {}),
             ],
             ManagerPage::Details(_) => vec![
                 KeyBinding::action(
@@ -110,21 +87,9 @@ where
                     [Key::Down, Key::Character('j')],
                     ManagerIntentOp::SelectNextDetail {},
                 ),
-                KeyBinding::action(
-                    ManagerAction::Activate,
-                    [Key::Enter],
-                    ManagerIntentOp::ActivateDetail {},
-                ),
-                KeyBinding::action(
-                    ManagerAction::Space,
-                    [Key::Character(' ')],
-                    ManagerIntentOp::ApplySelectedSpace {},
-                ),
-                KeyBinding::action(
-                    ManagerAction::Back,
-                    [Key::Escape, Key::Backspace],
-                    ManagerIntentOp::Back {},
-                ),
+                KeyBinding::action(ManagerAction::Activate, [Key::Enter], ManagerIntentOp::ActivateDetail {}),
+                KeyBinding::action(ManagerAction::Space, [Key::Character(' ')], ManagerIntentOp::ApplySelectedSpace {}),
+                KeyBinding::action(ManagerAction::Back, [Key::Escape, Key::Backspace], ManagerIntentOp::Back {}),
             ],
             ManagerPage::Formats(_) => vec![
                 KeyBinding::action(
@@ -138,23 +103,11 @@ where
                     ManagerIntentOp::SelectNextFormat {},
                 ),
                 // Accepting a choice already applied leaves the page it was chosen on.
-                KeyBinding::action(
-                    ManagerAction::Activate,
-                    [Key::Enter],
-                    ManagerIntentOp::Back {},
-                ),
-                KeyBinding::action(
-                    ManagerAction::Back,
-                    [Key::Escape, Key::Backspace],
-                    ManagerIntentOp::Back {},
-                ),
+                KeyBinding::action(ManagerAction::Activate, [Key::Enter], ManagerIntentOp::Back {}),
+                KeyBinding::action(ManagerAction::Back, [Key::Escape, Key::Backspace], ManagerIntentOp::Back {}),
             ],
             ManagerPage::Log(_) | ManagerPage::Report(_) | ManagerPage::Command(_) => {
-                vec![KeyBinding::action(
-                    ManagerAction::Back,
-                    [Key::Escape, Key::Enter],
-                    ManagerIntentOp::Back {},
-                )]
+                vec![KeyBinding::action(ManagerAction::Back, [Key::Escape, Key::Enter], ManagerIntentOp::Back {})]
             }
             ManagerPage::AddSources => editor_bindings(ManagerIntentOp::SubmitDraft {}),
             ManagerPage::Output(_) => editor_bindings(ManagerIntentOp::SubmitOutput {}),
@@ -178,41 +131,24 @@ where
         if stroke.modified() {
             return None;
         }
-        self.page_bindings()
-            .find(|binding| binding.binds(stroke))
-            .or_else(|| self.typed_meaning(stroke.key.typed()?))
+        self.page_bindings().find(|binding| binding.binds(stroke)).or_else(|| self.typed_meaning(stroke.key.typed()?))
     }
 
     /// States what one typed scalar denotes on the current page.
     fn typed_meaning(&self, typed: char) -> Option<ManagerKeyBinding<This>> {
         self.page_accepts_text().then(|| {
-            KeyBinding::ungated(
-                [Key::Character(typed)],
-                ManagerIntentOp::InsertText {
-                    text: typed.to_string(),
-                },
-            )
+            KeyBinding::ungated([Key::Character(typed)], ManagerIntentOp::InsertText { text: typed.to_string() })
         })
     }
 
     /// States what pasted text denotes on the current page.
     fn paste_meaning(&self, text: &str) -> Option<ManagerKeyBinding<This>> {
-        self.page_accepts_text().then(|| {
-            KeyBinding::ungated(
-                [],
-                ManagerIntentOp::InsertText {
-                    text: text.to_owned(),
-                },
-            )
-        })
+        self.page_accepts_text().then(|| KeyBinding::ungated([], ManagerIntentOp::InsertText { text: text.to_owned() }))
     }
 
     /// Observes whether the current page holds a text draft free scalars belong to.
     fn page_accepts_text(&self) -> bool {
-        matches!(
-            self.page(),
-            ManagerPage::AddSources | ManagerPage::Output(_) | ManagerPage::Input(_)
-        )
+        matches!(self.page(), ManagerPage::AddSources | ManagerPage::Output(_) | ManagerPage::Input(_))
     }
 
     /// States the keys reaching one action on the current page, the primary key first.
@@ -265,21 +201,17 @@ where
     /// A gated binding applies only while its action has meaning, so a disabled menu entry and a
     /// pressed key refuse the same intention.
     fn apply_keystroke(&mut self, stroke: Keystroke) -> bool {
-        self.keystroke_meaning(stroke)
-            .is_some_and(|binding| self.apply_binding(binding))
+        self.keystroke_meaning(stroke).is_some_and(|binding| self.apply_binding(binding))
     }
 
     /// Applies what pasted text denotes, and observes whether it denoted anything.
     fn apply_paste(&mut self, text: &str) -> bool {
-        self.paste_meaning(text)
-            .is_some_and(|binding| self.apply_binding(binding))
+        self.paste_meaning(text).is_some_and(|binding| self.apply_binding(binding))
     }
 
     /// Applies one binding while the action gating it has meaning.
     fn apply_binding(&mut self, binding: ManagerKeyBinding<This>) -> bool {
-        let enabled = binding
-            .action
-            .is_none_or(|action| self.action_availability(action).is_enabled());
+        let enabled = binding.action.is_none_or(|action| self.action_availability(action).is_enabled());
         if enabled {
             self.apply_manager_event(binding.intent);
         }
@@ -292,16 +224,8 @@ fn editor_bindings<Id, Source, Format, Change>(
     submit: ManagerIntentOp<Id, Source, Format, Change>,
 ) -> Vec<KeyBinding<Id, Source, Format, Change>> {
     vec![
-        KeyBinding::action(
-            ManagerAction::Previous,
-            [Key::Left],
-            ManagerIntentOp::MoveCursorLeft {},
-        ),
-        KeyBinding::action(
-            ManagerAction::Next,
-            [Key::Right],
-            ManagerIntentOp::MoveCursorRight {},
-        ),
+        KeyBinding::action(ManagerAction::Previous, [Key::Left], ManagerIntentOp::MoveCursorLeft {}),
+        KeyBinding::action(ManagerAction::Next, [Key::Right], ManagerIntentOp::MoveCursorRight {}),
         KeyBinding::action(ManagerAction::Activate, [Key::Enter], submit),
         KeyBinding::action(ManagerAction::Back, [Key::Escape], ManagerIntentOp::Back {}),
         KeyBinding::ungated([Key::Backspace], ManagerIntentOp::DeleteBeforeCursor {}),
