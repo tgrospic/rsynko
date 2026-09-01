@@ -2,10 +2,20 @@ name: 🔧 Rsynko build and test
 
 on:
   push:
+    branches:
+    - master
+    tags: '**'
   pull_request:
+    branches:
+    - master
+    - 'feature/**'
+    - 'release/**'
 
 permissions:
   contents: read
+
+env:
+  CARGO_TERM_COLOR: always
 
 jobs:
   build:

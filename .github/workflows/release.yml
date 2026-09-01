@@ -2,11 +2,21 @@ name: 📦 Rsynko binary
 
 on:
   push:
+    branches:
+    - master
+    tags: 'rsynko-v*'
   pull_request:
+    branches:
+    - master
+    - 'feature/**'
+    - 'release/**'
   workflow_dispatch:
 
 permissions:
   contents: write
+
+env:
+  CARGO_TERM_COLOR: always
 
 jobs:
   binary:
