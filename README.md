@@ -96,7 +96,7 @@ What a library makes of a specification. Each lives under `crates/` and is named
 
 | Crate | | Interprets it as |
 | --- | --- | --- |
-| [`rsynko`](crates/rsynko) | [![crates.io][v-bin]][c-bin] [![docs.rs][d-bin]][r-bin] | the executable, composing the rest |
+| [`rsynko`](crates/rsynko) | [![crates.io][v-bin]][c-bin] | the executable, composing the rest |
 | [`rsynko-memory`](crates/rsynko-memory) | [![crates.io][v-mem]][c-mem] [![docs.rs][d-mem]][r-mem] | in-memory values the laws run against |
 | [`rsynko-process`](crates/rsynko-process) | [![crates.io][v-proc]][c-proc] [![docs.rs][d-proc]][r-proc] | an operating-system process running `rsync` |
 | [`rsynko-reqwest`](crates/rsynko-reqwest) | [![crates.io][v-req]][c-req] [![docs.rs][d-req]][r-req] | Reqwest requests and published files |
@@ -193,8 +193,6 @@ executable.
 [r-rat]: https://docs.rs/rsynko-ratatui
 [v-bin]: https://img.shields.io/crates/v/rsynko
 [c-bin]: https://crates.io/crates/rsynko
-[d-bin]: https://docs.rs/rsynko/badge.svg
-[r-bin]: https://docs.rs/rsynko
 
 [ga-badge]: https://github.com/tgrospic/rsynko/actions/workflows/rust.yml/badge.svg?branch=master
 [ga-url]: https://github.com/tgrospic/rsynko/actions?query=branch:master
