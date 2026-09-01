@@ -1903,7 +1903,7 @@ dependencies = [
 
 [[package]]
 name = "rsynko-download"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "alux-ext",
  "alux-sdk",
@@ -1915,7 +1915,7 @@ dependencies = [
 
 [[package]]
 name = "rsynko-manager"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "alux-ext",
  "alux-sdk",
@@ -1927,7 +1927,7 @@ dependencies = [
 
 [[package]]
 name = "rsynko-media"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "alux-ext",
  "alux-sdk",
@@ -1942,7 +1942,7 @@ dependencies = [
 
 [[package]]
 name = "rsynko-memory"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "alux-sdk",
  "ambassador",
@@ -1962,7 +1962,7 @@ dependencies = [
 
 [[package]]
 name = "rsynko-process"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "ambassador",
  "rsynko-manager",
@@ -1974,7 +1974,7 @@ dependencies = [
 
 [[package]]
 name = "rsynko-ratatui"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "alux-sdk",
  "ambassador",
@@ -1998,7 +1998,7 @@ dependencies = [
 
 [[package]]
 name = "rsynko-reqwest"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "reqwest",
  "rsynko-download",
@@ -2016,7 +2016,7 @@ dependencies = [
 
 [[package]]
 name = "rsynko-rsync"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "alux-ext",
  "alux-sdk",
@@ -2027,7 +2027,7 @@ dependencies = [
 
 [[package]]
 name = "rsynko-session"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "alux-ext",
  "ambassador",
@@ -2036,7 +2036,7 @@ dependencies = [
 
 [[package]]
 name = "rsynko-ui"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "alux-ext",
  "anyhow",
@@ -2045,7 +2045,7 @@ dependencies = [
 
 [[package]]
 name = "rsynko-x"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "alux-ext",
  "alux-sdk",
@@ -2055,7 +2055,7 @@ dependencies = [
 
 [[package]]
 name = "rsynko-yt"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "alux-ext",
  "ambassador",
