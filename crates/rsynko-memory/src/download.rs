@@ -109,26 +109,24 @@ impl AtomicPublishAlg for ReferenceDownloadEnv {
     }
 }
 
-impl DownloadReportAlg for ReferenceDownloadEnv {
+impl DownloadSorts for ReferenceDownloadEnv {
     type Event = DownloadEvent;
+    type Progress = DownloadProgress;
+}
 
+impl DownloadReportAlg for ReferenceDownloadEnv {
     fn report_download(&self, event: DownloadEvent) {
         self.events.borrow_mut().push(event);
     }
 }
 
 impl DownloadProgressAlg for ReferenceDownloadEnv {
-    type Progress = DownloadProgress;
-
     fn report_progress(&self, progress: DownloadProgress) {
         self.progress.borrow_mut().push(progress);
     }
 }
 
 impl DownloadObservationAlg for ReferenceDownloadEnv {
-    type Event = DownloadEvent;
-    type Progress = DownloadProgress;
-
     fn download_progress(&self, destination: &Path, downloaded: u64, total: Option<u64>) -> Self::Progress {
         DownloadSyntax.download_progress(destination, downloaded, total)
     }

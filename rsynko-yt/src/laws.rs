@@ -408,7 +408,7 @@ where
 
 /// Checks that Youtube specialization hands its media request to generic download unchanged.
 #[ext(name = YoutubeApplicationLaws)]
-pub impl<This, Request, Event, Progress> This
+pub impl<This, Request> This
 where
     This: YoutubeSorts<Request = Request>
         + YoutubeRequestAlg
@@ -431,9 +431,9 @@ where
         + FormatSourceAlg<Request>
         + FetchStreamAlg<Request, Error: Display>
         + AtomicPublishAlg<Error: Display>
-        + DownloadObservationAlg<Event = Event, Progress = Progress>
-        + DownloadProgressAlg<Progress = Progress>
-        + DownloadReportAlg<Event = Event>
+        + DownloadObservationAlg
+        + DownloadProgressAlg
+        + DownloadReportAlg
         + YoutubeLawFixture
         + MediaProgramLawFixture,
     Request: PartialEq + Debug,

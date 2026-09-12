@@ -59,7 +59,7 @@ pub enum MediaDownloadError<FetchError, PublishError> {
 
 /// Derives selection, naming, and download for an already extracted result.
 #[ext(name = MediaDownloadExt)]
-pub impl<This, Source, FetchError, PublishError, Event, Progress> This
+pub impl<This, Source, FetchError, PublishError> This
 where
     This: ExtractionViewAlg
         + MediaViewAlg
@@ -68,9 +68,9 @@ where
         + FormatSourceAlg<Source>
         + FetchStreamAlg<Source, Error = FetchError>
         + AtomicPublishAlg<Error = PublishError>
-        + DownloadObservationAlg<Event = Event, Progress = Progress>
-        + DownloadProgressAlg<Progress = Progress>
-        + DownloadReportAlg<Event = Event>,
+        + DownloadObservationAlg
+        + DownloadProgressAlg
+        + DownloadReportAlg,
     FetchError: Display,
     PublishError: Display,
 {
@@ -98,7 +98,7 @@ where
 
 /// Derives ordinary extraction, format selection, destination naming, and download.
 #[ext(name = ApplicationExt)]
-pub impl<This, ExtractionError, FetchError, PublishError, Event, Progress> This
+pub impl<This, ExtractionError, FetchError, PublishError> This
 where
     This: ExtractionCatalogAlg
         + ExtractionApplyAlg<Error = ExtractionError>
@@ -109,9 +109,9 @@ where
         + FormatSourceAlg<String>
         + FetchStreamAlg<String, Error = FetchError>
         + AtomicPublishAlg<Error = PublishError>
-        + DownloadObservationAlg<Event = Event, Progress = Progress>
-        + DownloadProgressAlg<Progress = Progress>
-        + DownloadReportAlg<Event = Event>,
+        + DownloadObservationAlg
+        + DownloadProgressAlg
+        + DownloadReportAlg,
     FetchError: Display,
     PublishError: Display,
 {

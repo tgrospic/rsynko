@@ -425,7 +425,7 @@ where
 
 /// Authors the composed media-download laws.
 #[ext(name = MediaProgramLaws)]
-pub impl<This, Source, Event, Progress> This
+pub impl<This, Source> This
 where
     This: MetadataAlg
         + FormatAlg
@@ -439,9 +439,9 @@ where
         + FormatSourceAlg<Source>
         + FetchStreamAlg<Source, Error: Display>
         + AtomicPublishAlg<Error: Display>
-        + DownloadObservationAlg<Event = Event, Progress = Progress>
-        + DownloadProgressAlg<Progress = Progress>
-        + DownloadReportAlg<Event = Event>
+        + DownloadObservationAlg
+        + DownloadProgressAlg
+        + DownloadReportAlg
         + MediaProgramLawFixture,
 {
     /// Checks that the composed program selects one format and names its destination from it.

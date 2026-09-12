@@ -370,9 +370,12 @@ impl AtomicPublishAlg for RuntimeEnvironment {
     }
 }
 
-impl DownloadReportAlg for RuntimeEnvironment {
+impl DownloadSorts for RuntimeEnvironment {
     type Event = DownloadEvent;
+    type Progress = DownloadProgress;
+}
 
+impl DownloadReportAlg for RuntimeEnvironment {
     fn report_download(&self, event: DownloadEvent) {
         self.events.borrow_mut().push(event.clone());
         if let Some(observer) = &self.observer {
@@ -382,8 +385,6 @@ impl DownloadReportAlg for RuntimeEnvironment {
 }
 
 impl DownloadProgressAlg for RuntimeEnvironment {
-    type Progress = DownloadProgress;
-
     fn report_progress(&self, progress: DownloadProgress) {
         self.progress.borrow_mut().push(progress.clone());
         if let Some(observer) = &self.observer {
@@ -393,9 +394,6 @@ impl DownloadProgressAlg for RuntimeEnvironment {
 }
 
 impl DownloadObservationAlg for RuntimeEnvironment {
-    type Event = DownloadEvent;
-    type Progress = DownloadProgress;
-
     fn download_progress(&self, destination: &Path, downloaded: u64, total: Option<u64>) -> Self::Progress {
         DownloadSyntax.download_progress(destination, downloaded, total)
     }

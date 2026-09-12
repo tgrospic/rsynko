@@ -8,7 +8,7 @@ use thiserror::Error;
 
 /// Derives Youtube extraction and specialized media retrieval as generic download.
 #[ext(name = YoutubeApplicationExt)]
-pub impl<This, Request, RequestError, ResponseError, ChallengeError, FetchError, PublishError, Event, Progress> This
+pub impl<This, Request, RequestError, ResponseError, ChallengeError, FetchError, PublishError> This
 where
     This: YoutubeSorts<Request = Request>
         + YoutubeRequestAlg
@@ -29,9 +29,9 @@ where
         + FormatSourceAlg<Request>
         + FetchStreamAlg<Request, Error = FetchError>
         + AtomicPublishAlg<Error = PublishError>
-        + DownloadObservationAlg<Event = Event, Progress = Progress>
-        + DownloadProgressAlg<Progress = Progress>
-        + DownloadReportAlg<Event = Event>,
+        + DownloadObservationAlg
+        + DownloadProgressAlg
+        + DownloadReportAlg,
     FetchError: Display,
     PublishError: Display,
 {

@@ -6,14 +6,14 @@ use thiserror::Error;
 
 /// Derives complete one-resource download meaning from three primitive capabilities.
 #[ext(name = DownloadExt)]
-pub impl<This, Source, FetchError, PublishError, Event, Progress> This
+pub impl<This, Source, FetchError, PublishError> This
 where
     Source: ?Sized,
     This: FetchStreamAlg<Source, Error = FetchError>
         + AtomicPublishAlg<Error = PublishError>
-        + DownloadObservationAlg<Event = Event, Progress = Progress>
-        + DownloadProgressAlg<Progress = Progress>
-        + DownloadReportAlg<Event = Event>,
+        + DownloadObservationAlg
+        + DownloadProgressAlg
+        + DownloadReportAlg,
     FetchError: Display,
     PublishError: Display,
 {
@@ -27,47 +27,50 @@ where
         source: &Source,
         destination: &Path,
     ) -> Result<u64, DownloadError<FetchError, PublishError>> {
-        let mut opened = match self.open_fetch(source) {
-            Ok(opened) => opened,
-            Err(error) => {
-                self.report_download(self.download_failed(destination, error.to_string()));
-                return Err(DownloadError::Fetch(error));
-            }
+        // One failure is stated wherever it arises exactly as its cause states it.
+        let report_failure = |error: &dyn Display| {
+            self.report_download(self.download_failed(destination, error.to_string()));
         };
-        let mut publication = match self.begin_publication(destination) {
-            Ok(publication) => publication,
-            Err(error) => {
-                self.report_download(self.download_failed(destination, error.to_string()));
-                return Err(DownloadError::Publish(error));
-            }
-        };
+
+        let mut opened =
+            self.open_fetch(source).inspect_err(|error| report_failure(error)).map_err(DownloadError::Fetch)?;
+        let mut publication = self
+            .begin_publication(destination)
+            .inspect_err(|error| report_failure(error))
+            .map_err(DownloadError::Publish)?;
+
         let mut byte_count = 0_u64;
         self.report_progress(self.download_progress(destination, byte_count, opened.total));
         let mut buffer = vec![0_u8; 64 * 1024];
-        loop {
-            let read = match self.read_fetch(&mut opened.stream, &mut buffer) {
-                Ok(read) => read,
-                Err(error) => {
-                    self.abort_publication(publication);
-                    self.report_download(self.download_failed(destination, error.to_string()));
-                    return Err(DownloadError::Fetch(error));
+        // The stream ends by stating how it ended, so the publication is disposed of in one place.
+        let streamed = loop {
+            match self.read_fetch(&mut opened.stream, &mut buffer) {
+                Ok(0) => break Ok(byte_count),
+                Ok(read) => {
+                    if let Err(error) = self.write_publication(&mut publication, &buffer[..read]) {
+                        report_failure(&error);
+                        break Err(DownloadError::Publish(error));
+                    }
+                    byte_count = byte_count.saturating_add(u64::try_from(read).unwrap_or(u64::MAX));
+                    self.report_progress(self.download_progress(destination, byte_count, opened.total));
                 }
-            };
-            if read == 0 {
-                break;
+                Err(error) => {
+                    report_failure(&error);
+                    break Err(DownloadError::Fetch(error));
+                }
             }
-            if let Err(error) = self.write_publication(&mut publication, &buffer[..read]) {
+        };
+        let byte_count = match streamed {
+            Ok(byte_count) => byte_count,
+            Err(error) => {
                 self.abort_publication(publication);
-                self.report_download(self.download_failed(destination, error.to_string()));
-                return Err(DownloadError::Publish(error));
+                return Err(error);
             }
-            byte_count = byte_count.saturating_add(u64::try_from(read).unwrap_or(u64::MAX));
-            self.report_progress(self.download_progress(destination, byte_count, opened.total));
-        }
-        if let Err(error) = self.commit_publication(publication) {
-            self.report_download(self.download_failed(destination, error.to_string()));
-            return Err(DownloadError::Publish(error));
-        }
+        };
+
+        self.commit_publication(publication)
+            .inspect_err(|error| report_failure(error))
+            .map_err(DownloadError::Publish)?;
         self.report_download(self.download_succeeded(destination, byte_count));
         Ok(byte_count)
     }

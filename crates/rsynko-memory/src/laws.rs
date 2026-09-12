@@ -102,6 +102,7 @@ pub struct ReferenceProcessingRefusal(String);
 #[delegate(SyncObservationViewAlg, target = "sync")]
 #[delegate(SyncRunAlg, target = "sync")]
 #[delegate(SyncWatchAlg, target = "sync")]
+#[delegate(DownloadSorts, target = "downloads")]
 #[delegate(DownloadObservationAlg, target = "downloads")]
 #[delegate(DownloadReportAlg, target = "downloads")]
 #[delegate(DownloadProgressAlg, target = "downloads")]

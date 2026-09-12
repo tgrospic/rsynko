@@ -2000,6 +2000,7 @@ dependencies = [
 name = "rsynko-reqwest"
 version = "0.1.2"
 dependencies = [
+ "alux-traversable",
  "reqwest",
  "rsynko-download",
  "rsynko-media",

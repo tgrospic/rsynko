@@ -5,6 +5,7 @@
 //! array, dropping a prefix of it, and swapping the first character with one at an index. Those
 //! primitives are what the whole program means, so recovering it is recovering that sequence.
 
+use alux_traversable::IterTraversableExt;
 use thiserror::Error;
 
 /// Denotes failure to recover the decipher program from a player script.
@@ -50,8 +51,7 @@ impl SignatureProgram {
         let object = helper_object(player, &helper).ok_or(SignatureProgramError::MissingHelper)?;
         body.split(';')
             .filter_map(|call| helper_call(call, &helper))
-            .map(|(name, argument)| step(&object, name, argument))
-            .collect::<Result<Vec<_>, _>>()
+            .traverse(|(name, argument)| step(&object, name, argument))
             .map(|steps| Self { steps })
     }
 

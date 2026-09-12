@@ -13,17 +13,18 @@ keywords.workspace = true
 categories.workspace = true
 
 [dependencies]
-rsynko-memory.workspace = true
+alux-traversable.workspace = true
 reqwest.workspace = true
+rsynko-download.workspace = true
+rsynko-media.workspace = true
+rsynko-memory.workspace = true
+rsynko-x.workspace = true
+rsynko-yt.workspace = true
 rustls.workspace = true
 serde_json.workspace = true
 thiserror.workspace = true
 tokio-stream.workspace = true
 url.workspace = true
-rsynko-download.workspace = true
-rsynko-media.workspace = true
-rsynko-x.workspace = true
-rsynko-yt.workspace = true
 
 [dev-dependencies]
 tempfile.workspace = true

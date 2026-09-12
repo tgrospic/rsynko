@@ -37,14 +37,14 @@ pub trait DownloadLawFixture {
 
 /// Authors the one-resource download laws.
 #[ext(name = DownloadLaws)]
-pub impl<This, Source, Event, Progress> This
+pub impl<This, Source> This
 where
     This: DownloadLawFixture<Source = Source>
         + FetchStreamAlg<Source, Error: Display>
         + AtomicPublishAlg<Error: Display>
-        + DownloadObservationAlg<Event = Event, Progress = Progress>
-        + DownloadProgressAlg<Progress = Progress>
-        + DownloadReportAlg<Event = Event>,
+        + DownloadObservationAlg
+        + DownloadProgressAlg
+        + DownloadReportAlg,
 {
     /// Checks that a successful download publishes exactly the bytes it reported.
     ///

@@ -256,6 +256,7 @@ impl YoutubeSolutionAlg for ReferenceYoutubeEnv {
 #[allow(clippy::duplicated_attributes, reason = "one delegation per capability, not per target")]
 #[derive(Debug, Default, Delegate)]
 #[delegate(AtomicPublishAlg, target = "resources")]
+#[delegate(DownloadSorts, target = "resources")]
 #[delegate(DownloadObservationAlg, target = "resources")]
 #[delegate(DownloadReportAlg, target = "resources")]
 #[delegate(DownloadProgressAlg, target = "resources")]

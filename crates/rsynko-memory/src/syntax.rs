@@ -5,7 +5,7 @@ use crate::{
     FormatSelection, InfoRecord, InfoValue, Media, ProcessingProgram, ProcessingStep, ProcessorId, UrlReference,
     interpret_selection, predicate_accepts,
 };
-use rsynko_download::DownloadObservationAlg;
+use rsynko_download::{DownloadObservationAlg, DownloadSorts};
 use rsynko_media::*;
 use std::path::{Path, PathBuf};
 
@@ -264,10 +264,12 @@ impl ProcessingSorts for ProcessingSyntax {
 #[derive(Clone, Copy, Debug, Default)]
 pub struct DownloadSyntax;
 
-impl DownloadObservationAlg for DownloadSyntax {
+impl DownloadSorts for DownloadSyntax {
     type Event = DownloadEvent;
     type Progress = DownloadProgress;
+}
 
+impl DownloadObservationAlg for DownloadSyntax {
     fn download_progress(&self, destination: &Path, downloaded: u64, total: Option<u64>) -> Self::Progress {
         DownloadProgress::new(destination.to_owned(), downloaded, total)
     }
