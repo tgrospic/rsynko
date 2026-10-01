@@ -27,7 +27,7 @@ rsynko-x = { version = "0.1", path = "rsynko-x" }
 rsynko-yt = { version = "0.1", path = "rsynko-yt" }
 
 alux-ext = "0.1"
-alux-sdk = "0.1"
+alux-sdk = "0.3"
 ambassador = "0.5"
 anyhow = "1"
 clap = { version = "4", features = ["derive"] }

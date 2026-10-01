@@ -61,9 +61,9 @@ dependencies = [
 
 [[package]]
 name = "alux-sdk"
-version = "0.1.0"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8c6100a7190977f9abc4d9d159aabe8fe3c3e6aa849a64b91df8588a01d484d5"
+checksum = "ef6e4427baed53adc0746e91166227a2f7ed5884ad686406e1627e76ce1127a4"
 dependencies = [
  "alux-ext",
  "alux-sdk-macros",
