@@ -1,20 +1,25 @@
 version: 2
 
+multi-ecosystem-groups:
+  dependencies:
+    schedule:
+      interval: monthly
+    labels:
+    - dependencies
+
 updates:
 - package-ecosystem: cargo
   directory: /
-  schedule:
-    interval: monthly
+  patterns:
+  - "*"
+  multi-ecosystem-group: dependencies
   cooldown:
     default-days: 7
-  labels:
-  - dependencies
 
 - package-ecosystem: github-actions
   directory: /
-  schedule:
-    interval: monthly
+  patterns:
+  - "*"
+  multi-ecosystem-group: dependencies
   cooldown:
     default-days: 7
-  labels:
-  - dependencies
