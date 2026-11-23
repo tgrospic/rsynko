@@ -17,7 +17,9 @@ name = "rsynko"
 path = "src/main.rs"
 
 [dependencies]
-clap.workspace = true
+alux-cli.workspace = true
+alux-cli-clap.workspace = true
+alux-ext.workspace = true
 rsynko-manager.workspace = true
 rsynko-media.workspace = true
 rsynko-memory.workspace = true

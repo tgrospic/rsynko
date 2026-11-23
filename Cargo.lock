@@ -39,20 +39,51 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "683d7910e743518b0e34f1186f92494becacb047c7b6bf616c96772180fef923"
 
 [[package]]
-name = "alux-ext"
-version = "0.1.2"
+name = "alux-cli"
+version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "73a6f0cb7a9dce000043e0b75536b44f177e838fe9ca93d53d9530cc812e2e6b"
+checksum = "48790375d5343da19c4b78572817f22983f8098669120a25854c2179ab7f8607"
+dependencies = [
+ "alux-ext",
+ "alux-shape",
+]
+
+[[package]]
+name = "alux-cli-clap"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "63256d3c558500b7578360d25cab6627531a69de03a1062d7e8518c0bdee0e83"
+dependencies = [
+ "alux-cli",
+ "alux-cli-direct",
+ "alux-ext",
+ "clap",
+]
+
+[[package]]
+name = "alux-cli-direct"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "aee72c5d8be7db34e8ed594e2d7ac15655f4d2bed8a1c9ee35a2052bd5b2b9df"
+dependencies = [
+ "alux-cli",
+ "alux-ext",
+]
+
+[[package]]
+name = "alux-ext"
+version = "0.3.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "695f1642dfc8279560c95d289cf8f78cb1b7a5c5399c182e1596ba28b80cb025"
 dependencies = [
  "alux-ext-macros",
- "extend",
 ]
 
 [[package]]
 name = "alux-ext-macros"
-version = "0.1.4"
+version = "0.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "391deebbec6ea8e7556bf29881996f880474f5910def765c0c7668a070f74d10"
+checksum = "53e266fe621ed04f2251c7931658964127b19f5ed4e84be1bf445fb80afe77e4"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -61,9 +92,9 @@ dependencies = [
 
 [[package]]
 name = "alux-sdk"
-version = "0.1.0"
+version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8c6100a7190977f9abc4d9d159aabe8fe3c3e6aa849a64b91df8588a01d484d5"
+checksum = "4939ff08081fb17d2f63c130ac7dd7c9f0ffb091757466eb99d335e17e2fd6e2"
 dependencies = [
  "alux-ext",
  "alux-sdk-macros",
@@ -73,9 +104,9 @@ dependencies = [
 
 [[package]]
 name = "alux-sdk-macros"
-version = "0.1.0"
+version = "0.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8ca031dec79a5ade4f653a3b3cf002fe1afa7e4e2aa304ca4f6ee130ec7694e7"
+checksum = "782bb0c564580cacce7bf9ec097982f4fa23dd06fea24072af2bb6f2ff53d250"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -83,10 +114,42 @@ dependencies = [
 ]
 
 [[package]]
-name = "alux-traversable"
+name = "alux-shape"
+version = "0.3.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "da2478951d1b7b6ae25b9adf5095a1af6dbaacc85513ca85e8220be34180f386"
+dependencies = [
+ "alux-ext",
+ "alux-shape-macros",
+]
+
+[[package]]
+name = "alux-shape-macros"
+version = "0.3.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "666b08f1fb672cc5768dc14129e972d59e58c1d70da8bce8b36a12b1c4c0668a"
+dependencies = [
+ "alux-shape-syn",
+ "proc-macro2",
+ "quote",
+ "syn 3.0.4",
+]
+
+[[package]]
+name = "alux-shape-syn"
 version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "91ca73797aea51b4e00ebb62d8fa7ec8a79ee14c8cf60577f87a472a83f76c2e"
+checksum = "b65719f07c9261e80a736fa3a366d2e1bf62e1fd9239c8ec4d9d38b89a88a229"
+dependencies = [
+ "proc-macro2",
+ "syn 3.0.4",
+]
+
+[[package]]
+name = "alux-traversable"
+version = "0.3.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "519c1e5c7175375fe21e81182b444bb862fdac29de44fe5094ae75beedd2e8d4"
 dependencies = [
  "alux-ext",
 ]
@@ -104,54 +167,10 @@ dependencies = [
 ]
 
 [[package]]
-name = "anstream"
-version = "1.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "824a212faf96e9acacdbd09febd34438f8f711fb84e09a8916013cd7815ca28d"
-dependencies = [
- "anstyle",
- "anstyle-parse",
- "anstyle-query",
- "anstyle-wincon",
- "colorchoice",
- "is_terminal_polyfill",
- "utf8parse",
-]
-
-[[package]]
 name = "anstyle"
 version = "1.0.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "940b3a0ca603d1eade50a4846a2afffd5ef57a9feac2c0e2ec2e14f9ead76000"
-
-[[package]]
-name = "anstyle-parse"
-version = "1.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "52ce7f38b242319f7cabaa6813055467063ecdc9d355bbb4ce0c68908cd8130e"
-dependencies = [
- "utf8parse",
-]
-
-[[package]]
-name = "anstyle-query"
-version = "1.1.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "40c48f72fd53cd289104fc64099abca73db4166ad86ea0b4341abe65af83dadc"
-dependencies = [
- "windows-sys 0.61.2",
-]
-
-[[package]]
-name = "anstyle-wincon"
-version = "3.0.11"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "291e6a250ff86cd4a820112fb8898808a366d8f9f58ce16d1f538353ad55747d"
-dependencies = [
- "anstyle",
- "once_cell_polyfill",
- "windows-sys 0.61.2",
-]
 
 [[package]]
 name = "anyhow"
@@ -326,7 +345,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "473c7e07f409a8d772161724aa8db6a765a2532a70f9667eeb7b49d3d02fbdca"
 dependencies = [
  "clap_builder",
- "clap_derive",
 ]
 
 [[package]]
@@ -335,22 +353,9 @@ version = "4.6.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7b48fea5a88e9ae728a2dcbedbfc0e730f7d60da42e1cb049a83c9fb8b789889"
 dependencies = [
- "anstream",
  "anstyle",
  "clap_lex",
  "strsim",
-]
-
-[[package]]
-name = "clap_derive"
-version = "4.6.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d012d2b9d65aca7f18f4d9878a045bc17899bba951561ba5ec3c2ba1eed9a061"
-dependencies = [
- "heck",
- "proc-macro2",
- "quote",
- "syn 3.0.4",
 ]
 
 [[package]]
@@ -358,12 +363,6 @@ name = "clap_lex"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c8d4a3bb8b1e0c1050499d1815f5ab16d04f0959b233085fb31653fbfc9d98f9"
-
-[[package]]
-name = "colorchoice"
-version = "1.0.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1d07550c9036bf2ae0c684c4297d503f838287c83c53686d05370d0e139ae570"
 
 [[package]]
 name = "combine"
@@ -641,17 +640,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f1a05365e3b1c6d1650318537c7460c6923f1abdd272ad6842baa2b509957a06"
 dependencies = [
  "num-traits",
-]
-
-[[package]]
-name = "extend"
-version = "1.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "311a6d2f1f9d60bff73d2c78a0af97ed27f79672f15c238192a5bbb64db56d00"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 2.0.119",
 ]
 
 [[package]]
@@ -1132,12 +1120,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6a756c3fac73139e83f14c2d742155dd2b78d3ee56597b419a0579b7bdd6dd78"
 
 [[package]]
-name = "is_terminal_polyfill"
-version = "1.70.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a6cb138bb79a146c1bd460005623e142ef0181e3d0219cb493e02f7d08a35695"
-
-[[package]]
 name = "itertools"
 version = "0.10.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1438,12 +1420,6 @@ name = "once_cell"
 version = "1.21.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9f7c3e4beb33f85d45ae3e3a1792185706c8e16d043238c593331cc7cd313b50"
-
-[[package]]
-name = "once_cell_polyfill"
-version = "1.70.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "384b8ab6d37215f3c5301a95a4accb5d64aa607f1fcb26a11b5303878451b4fe"
 
 [[package]]
 name = "openssl-probe"
@@ -1889,7 +1865,9 @@ dependencies = [
 name = "rsynko"
 version = "0.1.2"
 dependencies = [
- "clap",
+ "alux-cli",
+ "alux-cli-clap",
+ "alux-ext",
  "rsynko-manager",
  "rsynko-media",
  "rsynko-memory",

@@ -26,12 +26,13 @@ rsynko-ui = { version = "0.1", path = "rsynko-ui" }
 rsynko-x = { version = "0.1", path = "rsynko-x" }
 rsynko-yt = { version = "0.1", path = "rsynko-yt" }
 
-alux-ext = "0.1"
-alux-sdk = "0.1"
-alux-traversable = "0.1"
+alux-cli = "0.4"
+alux-cli-clap = "0.4"
+alux-ext = "0.3"
+alux-sdk = "0.7"
+alux-traversable = "0.3"
 ambassador = "0.5"
 anyhow = "1"
-clap = { version = "4", features = ["derive"] }
 crossterm = "0.29"
 derive_more = { version = "2", features = ["from"] }
 derive-new = "0.7"
